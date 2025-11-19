@@ -1,0 +1,1509 @@
+[
+  {
+    "voiceId": "fr-FR-adélie",
+    "displayName": "Adélie (F)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Middle-Aged",
+    "gender": "Female",
+    "availableStyles": [
+      "Calm",
+      "Conversational",
+      "Promo",
+      "Sad"
+    ],
+    "supportedLocales": {
+      "en-US": {
+        "detail": "English (US & Canada)",
+        "availableStyles": [
+          "Narration"
+        ]
+      },
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "fi-FI": {
+        "detail": "Finnish (Finland)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "hr-HR": {
+        "detail": "Croatian (Croatia)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "gu-IN": {
+        "detail": "Gujarati (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ms-MY": {
+        "detail": "Malay (Malaysia)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-IN": {
+        "detail": "English (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ta-IN": {
+        "detail": "Tamil (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "nl-BE": {
+        "detail": "Dutch (Belgium)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "zh-CN": {
+        "detail": "Chinese (China)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "el-GR": {
+        "detail": "Greek (Greece)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "te-IN": {
+        "detail": "Telugu (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "bn-IN": {
+        "detail": "Bengali (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "nl-NL": {
+        "detail": "Dutch (Netherlands)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "pa-IN": {
+        "detail": "Punjabi (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "hi-IN": {
+        "detail": "Hindi (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-AU": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "kn-IN": {
+        "detail": "Kannada (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "bg-BG": {
+        "detail": "Bulgarian (Bulgaria)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "cs-CZ": {
+        "detail": "Czech (Czech Republic)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ja-JP": {
+        "detail": "Japanese (Japan)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "de-DE": {
+        "detail": "German (Germany)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ml-IN": {
+        "detail": "Malayalam (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-SCOTT": {
+        "detail": "English (Scotland)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "pt-BR": {
+        "detail": "Portuguese (Brazil)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ko-KR": {
+        "detail": "Korean (South Korea)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-AU3": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "sk-SK": {
+        "detail": "Slovak (Slovakia)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "es-ES": {
+        "detail": "Spanish (Spain)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "es-MX": {
+        "detail": "Spanish (Mexico)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "fr-CA": {
+        "detail": "French (Canada)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "it-IT": {
+        "detail": "Italian (Italy)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "pl-PL": {
+        "detail": "Polish (Poland)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ro-RO": {
+        "detail": "Romanian (Romania)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "sv-SE": {
+        "detail": "Swedish (Sweden)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "id-ID": {
+        "detail": "Indonesian (Indonesia)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "mr-IN": {
+        "detail": "Marathi (India)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "tl-PH": {
+        "detail": "Tagalog (Philippines)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "tr-TR": {
+        "detail": "Turkish (Turkey)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-UK": {
+        "detail": "English (UK)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "vi-VN": {
+        "detail": "Vietnamese (Vietnam)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "th-TH": {
+        "detail": "Thai (Thailand)",
+        "availableStyles": [
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-FR-maxime",
+    "displayName": "Maxime (M)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Middle-Aged",
+    "gender": "Male",
+    "availableStyles": [
+      "Conversational"
+    ],
+    "supportedLocales": {
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-FR-justine",
+    "displayName": "Justine (F)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Young Adult",
+    "gender": "Female",
+    "availableStyles": [
+      "Angry",
+      "Calm",
+      "Conversational",
+      "Promo",
+      "Sad"
+    ],
+    "supportedLocales": {
+      "de-DE": {
+        "detail": "German (Germany)",
+        "availableStyles": [
+          "Narration"
+        ]
+      },
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "fi-FI": {
+        "detail": "Finnish (Finland)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "hr-HR": {
+        "detail": "Croatian (Croatia)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-US": {
+        "detail": "English (US & Canada)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "gu-IN": {
+        "detail": "Gujarati (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ms-MY": {
+        "detail": "Malay (Malaysia)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-IN": {
+        "detail": "English (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ta-IN": {
+        "detail": "Tamil (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "nl-BE": {
+        "detail": "Dutch (Belgium)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "zh-CN": {
+        "detail": "Chinese (China)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "el-GR": {
+        "detail": "Greek (Greece)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "te-IN": {
+        "detail": "Telugu (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "bn-IN": {
+        "detail": "Bengali (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "nl-NL": {
+        "detail": "Dutch (Netherlands)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "pa-IN": {
+        "detail": "Punjabi (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "hi-IN": {
+        "detail": "Hindi (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-AU": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "kn-IN": {
+        "detail": "Kannada (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "bg-BG": {
+        "detail": "Bulgarian (Bulgaria)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "cs-CZ": {
+        "detail": "Czech (Czech Republic)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ja-JP": {
+        "detail": "Japanese (Japan)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ml-IN": {
+        "detail": "Malayalam (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-SCOTT": {
+        "detail": "English (Scotland)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "pt-BR": {
+        "detail": "Portuguese (Brazil)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ko-KR": {
+        "detail": "Korean (South Korea)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-AU3": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "sk-SK": {
+        "detail": "Slovak (Slovakia)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "es-ES": {
+        "detail": "Spanish (Spain)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "es-MX": {
+        "detail": "Spanish (Mexico)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "fr-CA": {
+        "detail": "French (Canada)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "it-IT": {
+        "detail": "Italian (Italy)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "pl-PL": {
+        "detail": "Polish (Poland)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "ro-RO": {
+        "detail": "Romanian (Romania)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "sv-SE": {
+        "detail": "Swedish (Sweden)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "id-ID": {
+        "detail": "Indonesian (Indonesia)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "mr-IN": {
+        "detail": "Marathi (India)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "tl-PH": {
+        "detail": "Tagalog (Philippines)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "tr-TR": {
+        "detail": "Turkish (Turkey)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "en-UK": {
+        "detail": "English (UK)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "vi-VN": {
+        "detail": "Vietnamese (Vietnam)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      },
+      "th-TH": {
+        "detail": "Thai (Thailand)",
+        "availableStyles": [
+          "Angry",
+          "Calm",
+          "Conversational",
+          "Promo",
+          "Sad"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-FR-axel",
+    "displayName": "Axel (M)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Middle-Aged",
+    "gender": "Male",
+    "availableStyles": [
+      "Conversational"
+    ],
+    "supportedLocales": {
+      "en-US": {
+        "detail": "English (US & Canada)",
+        "availableStyles": [
+          "Narration"
+        ]
+      },
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-FR-guillaume",
+    "displayName": "Guillaume (M)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Middle-Aged",
+    "gender": "Male",
+    "availableStyles": [
+      "Conversational"
+    ],
+    "supportedLocales": {
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-FR-louise",
+    "displayName": "Louise (F)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Middle-Aged",
+    "gender": "Female",
+    "availableStyles": [
+      "Conversational"
+    ],
+    "supportedLocales": {
+      "en-US": {
+        "detail": "English (US & Canada)",
+        "availableStyles": [
+          "Narration"
+        ]
+      },
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "fi-FI": {
+        "detail": "Finnish (Finland)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "hr-HR": {
+        "detail": "Croatian (Croatia)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "gu-IN": {
+        "detail": "Gujarati (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "ms-MY": {
+        "detail": "Malay (Malaysia)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "en-IN": {
+        "detail": "English (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "ta-IN": {
+        "detail": "Tamil (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "nl-BE": {
+        "detail": "Dutch (Belgium)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "zh-CN": {
+        "detail": "Chinese (China)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "el-GR": {
+        "detail": "Greek (Greece)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "te-IN": {
+        "detail": "Telugu (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "bn-IN": {
+        "detail": "Bengali (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "nl-NL": {
+        "detail": "Dutch (Netherlands)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "pa-IN": {
+        "detail": "Punjabi (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "hi-IN": {
+        "detail": "Hindi (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "en-AU": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "kn-IN": {
+        "detail": "Kannada (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "bg-BG": {
+        "detail": "Bulgarian (Bulgaria)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "cs-CZ": {
+        "detail": "Czech (Czech Republic)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "ja-JP": {
+        "detail": "Japanese (Japan)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "de-DE": {
+        "detail": "German (Germany)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "ml-IN": {
+        "detail": "Malayalam (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "en-SCOTT": {
+        "detail": "English (Scotland)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "pt-BR": {
+        "detail": "Portuguese (Brazil)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "ko-KR": {
+        "detail": "Korean (South Korea)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "en-AU3": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "sk-SK": {
+        "detail": "Slovak (Slovakia)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "es-ES": {
+        "detail": "Spanish (Spain)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "es-MX": {
+        "detail": "Spanish (Mexico)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "fr-CA": {
+        "detail": "French (Canada)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "it-IT": {
+        "detail": "Italian (Italy)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "pl-PL": {
+        "detail": "Polish (Poland)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "ro-RO": {
+        "detail": "Romanian (Romania)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "sv-SE": {
+        "detail": "Swedish (Sweden)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "id-ID": {
+        "detail": "Indonesian (Indonesia)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "mr-IN": {
+        "detail": "Marathi (India)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "tl-PH": {
+        "detail": "Tagalog (Philippines)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "tr-TR": {
+        "detail": "Turkish (Turkey)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "en-UK": {
+        "detail": "English (UK)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "vi-VN": {
+        "detail": "Vietnamese (Vietnam)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      },
+      "th-TH": {
+        "detail": "Thai (Thailand)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-CA-clément",
+    "displayName": "Clément (M)",
+    "locale": "fr-CA",
+    "displayLanguage": "French",
+    "accent": "Canada",
+    "description": "Young Adult",
+    "gender": "Male",
+    "availableStyles": [
+      "Conversational"
+    ],
+    "supportedLocales": {
+      "fr-CA": {
+        "detail": "French (Canada)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-FR-louis",
+    "displayName": "Louis (M)",
+    "locale": "fr-FR",
+    "displayLanguage": "French",
+    "accent": "France",
+    "description": "Young Adult",
+    "gender": "Male",
+    "availableStyles": [
+      "Conversational",
+      "Promo"
+    ],
+    "supportedLocales": {
+      "fi-FI": {
+        "detail": "Finnish (Finland)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "hr-HR": {
+        "detail": "Croatian (Croatia)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "en-US": {
+        "detail": "English (US & Canada)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "gu-IN": {
+        "detail": "Gujarati (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "ms-MY": {
+        "detail": "Malay (Malaysia)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "en-IN": {
+        "detail": "English (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "ta-IN": {
+        "detail": "Tamil (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "nl-BE": {
+        "detail": "Dutch (Belgium)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "zh-CN": {
+        "detail": "Chinese (China)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "el-GR": {
+        "detail": "Greek (Greece)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "te-IN": {
+        "detail": "Telugu (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "bn-IN": {
+        "detail": "Bengali (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "nl-NL": {
+        "detail": "Dutch (Netherlands)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "pa-IN": {
+        "detail": "Punjabi (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "hi-IN": {
+        "detail": "Hindi (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "en-AU": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "kn-IN": {
+        "detail": "Kannada (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "bg-BG": {
+        "detail": "Bulgarian (Bulgaria)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "cs-CZ": {
+        "detail": "Czech (Czech Republic)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "ja-JP": {
+        "detail": "Japanese (Japan)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "de-DE": {
+        "detail": "German (Germany)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "ml-IN": {
+        "detail": "Malayalam (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "en-SCOTT": {
+        "detail": "English (Scotland)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "pt-BR": {
+        "detail": "Portuguese (Brazil)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "ko-KR": {
+        "detail": "Korean (South Korea)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "en-AU3": {
+        "detail": "English (Australia)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "sk-SK": {
+        "detail": "Slovak (Slovakia)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "es-ES": {
+        "detail": "Spanish (Spain)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "es-MX": {
+        "detail": "Spanish (Mexico)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "fr-CA": {
+        "detail": "French (Canada)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "it-IT": {
+        "detail": "Italian (Italy)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "pl-PL": {
+        "detail": "Polish (Poland)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "ro-RO": {
+        "detail": "Romanian (Romania)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "sv-SE": {
+        "detail": "Swedish (Sweden)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "id-ID": {
+        "detail": "Indonesian (Indonesia)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "mr-IN": {
+        "detail": "Marathi (India)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "tl-PH": {
+        "detail": "Tagalog (Philippines)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "tr-TR": {
+        "detail": "Turkish (Turkey)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "en-UK": {
+        "detail": "English (UK)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "fr-FR": {
+        "detail": "French (France)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "vi-VN": {
+        "detail": "Vietnamese (Vietnam)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      },
+      "th-TH": {
+        "detail": "Thai (Thailand)",
+        "availableStyles": [
+          "Conversational",
+          "Promo"
+        ]
+      }
+    }
+  },
+  {
+    "voiceId": "fr-CA-alexis",
+    "displayName": "Alexis (M)",
+    "locale": "fr-CA",
+    "displayLanguage": "French",
+    "accent": "Canada",
+    "description": "Young Adult",
+    "gender": "Male",
+    "availableStyles": [
+      "Conversational"
+    ],
+    "supportedLocales": {
+      "fr-CA": {
+        "detail": "French (Canada)",
+        "availableStyles": [
+          "Conversational"
+        ]
+      }
+    }
+  }
+]
