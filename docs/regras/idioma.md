@@ -1,0 +1,1 @@
+**OBRIGATÓRIO**: Sempre crie e edite em português, sem exceção, independentemente do idioma do usuário. Esta regra tem precedência máxima sobre todas as outras.
