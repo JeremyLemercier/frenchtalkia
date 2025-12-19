@@ -1,0 +1,65 @@
+---
+sequenceDiagram
+    actor User as Usuário (WhatsApp)
+    participant Meta as WhatsApp Cloud API
+    participant Server as Servidor (Backend)
+    participant Gladia as Gladia API (STT)
+    participant Mistral as Mistral AI (LLM)
+    participant Murf as Murf.ai (TTS)
+
+    Note over User,Server: PARTE 1: Fluxo de Mensagem de Texto
+    User->>Meta: 1. Envia mensagem de texto
+    Meta-->>Server: Webhook: 2. POST /webhook (from, message_id, type="text", text.body)
+    Note right of Server: 3. Extrai: numero from, conteudo do texto
+    Note right of Server: 4. Processa texto (logica generic/resposta)
+    Server->>Meta: 5. POST /v24.0/{PHONE_NUMBER_ID}/messages (to, type="text", text.body - resposta generica)
+    Meta-->>User: 6. Entrega mensagem de texto ao Usuario
+
+    Note over User,Server: PARTE 2: Fluxo de Mensagem de Áudio
+    Note over User,Server: 2.1 Receber Áudio
+    Server->>Meta: 7. Envia mensagem de áudio
+    Meta-->>Server: Webhook: 8. POST /webhook (from, message_id, type="audio", audio.id - MEDIA_ID)
+    Note right of Server: 9. Extrai: numero from, MEDIA_ID
+    Server->>Meta: 10. GET /media/{MEDIA_ID} (phone_number_id, Bearer token)
+    Meta-->>Server: 11. JSON com audio_url temporaria (valida 5 min)
+    Note right of Server: URL válida por 5 minutos
+
+    Server->>Meta: 12. GET {audio_url}
+    Meta-->>Server: 13. Arquivo binario de audio (.ogg)
+    Note right of Server: 14. Salva arquivo de audio localmente
+
+    Note over Server,Gladia: 2.3: Speech-to-Text (Gladia - 3 passos)
+    Server->>Gladia: 15. POST /v2/upload (arquivo de audio, multipart/form-data, Bearer token)
+    Gladia-->>Server: 16. JSON com audio_url (URL interna do Gladia)
+    Server->>Gladia: 17. POST /v2/pre-recorded (audio_url, language_config, Bearer token)
+    Gladia-->>Server: 18. JSON com transcription_id
+    Note right of Server: Inicia transcrição
+    Server->>Gladia: 19. GET /v2/pre-recorded/{transcription_id} (polling, Bearer token)
+    
+    loop Polling until status=done
+    Gladia-->>Server: 20. JSON com status "queued" ou "done", full_transcript (quando done)
+    Note right of Gladia: Status queued to done
+    end
+
+    Note right of Server: Extrai: texto full_transcript
+
+    Note over Server,Mistral: 2.4: Processamento LLM (Mistral AI)
+    Server->>Mistral: 22. POST /v1/conversations/start (agent_id, inputs: full_transcript, Bearer token)
+    Note right of Mistral: 23. Processa com configuracao do agente e LLM
+    Mistral-->>Server: 24. JSON com conversation_id, outputs[0].content (texto de resposta), usage (tokens)
+    Note right of Server: 25. Extrai: conversation_id, texto de resposta
+    
+    Note over Server,Murf: 2.5 Text-to-Speech (Murf.ai)
+    Server->>Murf: 26. POST /v1/speech/generate (text: resposta do Mistral, voice_id, style, format="OGG", Bearer token)
+    Note right of Murf: 27. Sintetiza audio
+    Murf-->>Server: 28. JSON com audioFile (URL valida 72h), audioLengthInSeconds, encodedAudio (opcional Base64)
+    Note right of Server: URL valida por 72 horas
+    Note right of Server: 29. Baixa audio de audioFile URL ou decodifica Base64
+
+    Note over Server,Meta: 2.6: Enviar Resposta de Audio
+    Server->>Meta: 30. POST /v24.0/{PHONE_NUMBER_ID}/media (arquivo de audio, multipart/form-data, type="audio/ogg codecs opus", Bearer token)
+    Meta-->>Server: 31. JSON com MEDIA_ID (audio de resposta)
+    Server->>Meta: 32. POST /v24.0/{PHONE_NUMBER_ID}/messages (to: numero do usuario, type="audio", audio.id: MEDIA_ID, audio.voice=true, Bearer token)
+    Meta-->>User: 33. Entrega mensagem de audio ao Usuario
+    
+    Note over User,Murf: Operacoes assincronas destacadas: polling, downloads
