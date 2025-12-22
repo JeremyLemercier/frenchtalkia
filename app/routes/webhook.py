@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request, Response
 from typing import Any
 
 from app.config import get_configuracao
+from app.models import WebhookPayload, TextMessage, AudioMessage
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 logger = logging.getLogger(__name__)
@@ -58,22 +59,85 @@ async def webhook_receive(request: Request) -> dict[str, Any]:
         request: Request HTTP com payload da mensagem
         
     Returns:
-        dict: Confirmação de recebimento
+        dict: Confirmação de recebimento com dados processados
     """
-    # PARA FAZER:Implementar processamento real do webhook
-    # Este é um stub - apenas confirma recebimento
-    
     try:
-        payload = await request.json()
+        # Receber payload JSON
+        payload_data = await request.json()
+        logger.debug(f"Payload recebido: {payload_data}")
         
-        # Em implementação real, processar o payload para extrair
-        # informações da mensagem (telefone, conteúdo, tipo, etc.)
+        # Validar payload com WebhookPayload
+        payload = WebhookPayload.model_validate(payload_data)
         
-        return {
-            "status": "received",
-            "message": "Webhook recebido com sucesso"
-        }
+        # Extrair primeira mensagem
+        mensagem_dict = payload.extrair_mensagem()
+        if not mensagem_dict:
+            logger.warning("Nenhuma mensagem encontrada no payload")
+            return {
+                "status": "error",
+                "message": "Nenhuma mensagem encontrada"
+            }
+        
+        # Identificar tipo de mensagem
+        mensagem_tipo = mensagem_dict.get("type")
+        telefone = mensagem_dict.get("from")
+        mensagem_id = mensagem_dict.get("id")
+        timestamp = mensagem_dict.get("timestamp")
+        
+        logger.info(f"Mensagem recebida - Tipo: {mensagem_tipo}, Telefone: {telefone}, ID: {mensagem_id}")
+        
+        # Processar conforme tipo de mensagem
+        if mensagem_tipo == "text":
+            # Extrair mensagem de texto
+            text_message = TextMessage.model_validate(mensagem_dict)
+            conteudo = text_message.body
+            
+            return {
+                "status": "received",
+                "message": "Mensagem de texto recebida com sucesso",
+                "data": {
+                    "tipo": "text",
+                    "telefone": telefone,
+                    "mensagem_id": mensagem_id,
+                    "timestamp": timestamp,
+                    "conteudo": conteudo
+                }
+            }
+            
+        elif mensagem_tipo == "audio":
+            # Extrair mensagem de áudio
+            audio_message = AudioMessage.model_validate(mensagem_dict)
+            media_id = audio_message.audio_id
+            mime_type = audio_message.mime_type
+            
+            return {
+                "status": "received",
+                "message": "Mensagem de áudio recebida com sucesso",
+                "data": {
+                    "tipo": "audio",
+                    "telefone": telefone,
+                    "mensagem_id": mensagem_id,
+                    "timestamp": timestamp,
+                    "media_id": media_id,
+                    "mime_type": mime_type
+                }
+            }
+        
+        else:
+            logger.warning(f"Tipo de mensagem não suportado: {mensagem_tipo}")
+            return {
+                "status": "received",
+                "message": f"Tipo de mensagem não suportado: {mensagem_tipo}",
+                "data": {
+                    "tipo": mensagem_tipo,
+                    "telefone": telefone,
+                    "mensagem_id": mensagem_id,
+                    "timestamp": timestamp
+                }
+            }
+            
     except Exception as e:
+        logger.error(f"Erro ao processar webhook: {str(e)}")
         return {
             "status": "error",
             "message": f"Erro ao processar webhook: {str(e)}"
