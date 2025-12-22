@@ -4,6 +4,8 @@ from typing import Literal, Union
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
+from app.utils.logger import logger
+
 
 class ConfiguracaoApp(BaseSettings):
     """Configuração da aplicação usando Pydantic Settings."""
@@ -93,6 +95,5 @@ try:
 except ValueError as e:
     # Define configuracao como None para evitar NameError
     # A validação adequada deve ser feita onde a configuração é usada
-    import sys
-    print(f"\n❌ ERRO DE CONFIGURAÇÃO: {e}\n", file=sys.stderr)
+    logger.critical(f"ERRO DE CONFIGURAÇÃO: {e}")
     configuracao = None

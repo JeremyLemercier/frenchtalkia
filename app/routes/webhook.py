@@ -1,12 +1,11 @@
-import logging
 from fastapi import APIRouter, Request, Response
 from typing import Any
 
 from app.config import get_configuracao
 from app.models import WebhookPayload, TextMessage, AudioMessage
+from app.utils.logger import logger
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
-logger = logging.getLogger(__name__)
 
 
 @router.get("/whatsapp")
@@ -140,7 +139,7 @@ async def webhook_receive(request: Request) -> dict[str, Any]:
         logger.error(f"Erro ao processar webhook: {str(e)}")
         return {
             "status": "error",
-            "message": f"Erro ao processar webhook: {str(e)}"
+            "message": "Erro ao processar webhook"
         }
 
 

@@ -14,6 +14,7 @@ from app.services.whatsapp_service import WhatsAppService
 from app.storage.conversa_storage import ConversaStorage
 from app.storage.sessao_storage import SessaoStorage
 from app.storage.usuario_storage import UsuarioStorage
+from app.utils.logger import logger
 
 
 @asynccontextmanager
@@ -78,15 +79,15 @@ async def startup_event():
     app.state.mistral_service = mistral_service
     app.state.murf_service = murf_service
     
-    print("✅ Aplicação FrenchTalkIA inicializada com sucesso!")
-    print(f"📁 Diretório de dados: {configuracao.diretorio_dados}")
-    print(f"🎵 Diretório de áudio temporário: {configuracao.diretorio_temp_audio}")
-    print(f"🌍 Ambiente: {configuracao.ambiente}")
+    logger.info("Aplicação FrenchTalkIA inicializada com sucesso!")
+    logger.info(f"Diretório de dados: {configuracao.diretorio_dados}")
+    logger.info(f"Diretório de áudio temporário: {configuracao.diretorio_temp_audio}")
+    logger.info(f"Ambiente: {configuracao.ambiente}")
 
 
 async def shutdown_event():
     """Evento de encerramento da aplicação."""
-    print("🛑 Encerrando aplicação FrenchTalkIA...")
+    logger.info("Encerrando aplicação FrenchTalkIA...")
 
 
 # Criar aplicação FastAPI com gerenciamento de ciclo de vida

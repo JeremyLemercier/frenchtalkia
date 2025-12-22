@@ -1,4 +1,3 @@
-import logging
 import time
 from pathlib import Path
 from typing import Any, Dict
@@ -6,6 +5,7 @@ from typing import Any, Dict
 import httpx
 
 from app.config import ConfiguracaoApp
+from app.utils.logger import logger
 
 
 class WhatsAppService:
@@ -23,9 +23,8 @@ class WhatsAppService:
         self.phone_number_id = config.whatsapp_phone_number_id
         self.base_url = "https://graph.facebook.com/v24.0"
         self.httpx_client = httpx.AsyncClient(timeout=30.0)
-        self.logger = logging.getLogger(__name__)
         
-        self.logger.debug(f"WhatsAppService inicializado com phone_number_id: {self.phone_number_id}")
+        logger.debug(f"WhatsAppService inicializado com phone_number_id: {self.phone_number_id}")
     
     async def obter_url_media(self, media_id: str) -> str:
         """
@@ -45,33 +44,38 @@ class WhatsAppService:
             params = {"phone_number_id": self.phone_number_id}
             headers = {"Authorization": f"Bearer {self.access_token}"}
             
-            self.logger.debug(f"Obtendo URL para media_id: {media_id}")
+            logger.debug(f"Obtendo URL para media_id: {media_id}")
             
             response = await self.httpx_client.get(url, params=params, headers=headers)
             
             if response.status_code == 401:
-                self.logger.error("Token de acesso inválido")
-                raise ValueError("Token de acesso inválido")
+                msg_erro = "Token de acesso inválido"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             elif response.status_code == 404:
-                self.logger.error(f"Mídia não encontrada: {media_id}")
-                raise ValueError(f"Mídia não encontrada: {media_id}")
+                msg_erro = f"Mídia não encontrada: {media_id}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             elif response.status_code != 200:
-                self.logger.error(f"Erro ao obter URL da mídia: {response.status_code} - {response.text}")
-                raise ValueError(f"Erro ao obter URL da mídia: {response.status_code}")
+                msg_erro = f"Erro ao obter URL da mídia: {response.status_code}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
             data = response.json()
             media_url = data.get("url")
             
             if not media_url:
-                self.logger.error("URL não encontrada na resposta")
-                raise ValueError("URL não encontrada na resposta")
+                msg_erro = "URL não encontrada na resposta"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
-            self.logger.debug(f"URL obtida com sucesso: {media_url}")
+            logger.debug(f"URL obtida com sucesso: {media_url}")
             return media_url
             
         except httpx.RequestError as e:
-            self.logger.error(f"Erro de requisição ao obter URL da mídia: {str(e)}")
-            raise ValueError(f"Erro de requisição: {str(e)}")
+            msg_erro = f"Erro de requisição ao obter URL da mídia: {str(e)}"
+            logger.error(msg_erro)
+            raise ValueError(msg_erro)
     
     async def baixar_audio(self, media_id: str) -> Path:
         """
@@ -99,25 +103,26 @@ class WhatsAppService:
             filename = f"audio_{media_id}_{timestamp}.ogg"
             filepath = temp_dir / filename
             
-            self.logger.debug(f"Baixando áudio {media_id} para {filepath}")
+            logger.debug(f"Baixando áudio {media_id} para {filepath}")
             
             # Fazer download do arquivo
             headers = {"Authorization": f"Bearer {self.access_token}"}
             response = await self.httpx_client.get(media_url, headers=headers)
             
             if response.status_code != 200:
-                self.logger.error(f"Erro ao baixar áudio: {response.status_code} - {response.text}")
-                raise ValueError(f"Erro ao baixar áudio: {response.status_code}")
+                msg_erro = f"Erro ao baixar áudio: {response.status_code}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
             # Salvar arquivo
             filepath.write_bytes(response.content)
             
-            self.logger.info(f"Áudio baixado com sucesso: {filepath}")
+            logger.info(f"Áudio baixado com sucesso: {filepath}")
             return filepath
             
         except Exception as e:
-            self.logger.error(f"Erro ao baixar áudio {media_id}: {str(e)}")
-            raise ValueError(f"Erro ao baixar áudio: {str(e)}")
+            logger.exception(f"Erro ao baixar áudio {media_id}: {str(e)}")
+            raise
     
     async def fazer_upload_audio(self, caminho_audio: Path) -> str:
         """
@@ -136,7 +141,7 @@ class WhatsAppService:
             url = f"{self.base_url}/{self.phone_number_id}/media"
             headers = {"Authorization": f"Bearer {self.access_token}"}
             
-            self.logger.debug(f"Fazendo upload do áudio: {caminho_audio}")
+            logger.debug(f"Fazendo upload do áudio: {caminho_audio}")
             
             # Ler arquivo binário
             with open(caminho_audio, "rb") as audio_file:
@@ -149,31 +154,36 @@ class WhatsAppService:
                 response = await self.httpx_client.post(url, headers=headers, files=files)
             
             if response.status_code == 400:
-                self.logger.error(f"Formato de áudio inválido: {response.text}")
-                raise ValueError("Formato de áudio inválido")
+                msg_erro = "Formato de áudio inválido"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             elif response.status_code == 413:
-                self.logger.error("Arquivo de áudio muito grande")
-                raise ValueError("Arquivo de áudio muito grande")
+                msg_erro = "Arquivo de áudio muito grande"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             elif response.status_code != 200:
-                self.logger.error(f"Erro no upload: {response.status_code} - {response.text}")
-                raise ValueError(f"Erro no upload: {response.status_code}")
+                msg_erro = f"Erro no upload: {response.status_code}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
             data = response.json()
             media_id = data.get("id")
             
             if not media_id:
-                self.logger.error("ID do mídia não encontrado na resposta")
-                raise ValueError("ID do mídia não encontrado na resposta")
+                msg_erro = "ID do mídia não encontrado na resposta"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
-            self.logger.info(f"Upload realizado com sucesso. Media ID: {media_id}")
+            logger.info(f"Upload realizado com sucesso. Media ID: {media_id}")
             return media_id
             
         except httpx.RequestError as e:
-            self.logger.error(f"Erro de requisição no upload: {str(e)}")
-            raise ValueError(f"Erro de requisição: {str(e)}")
+            msg_erro = f"Erro de requisição no upload: {str(e)}"
+            logger.error(msg_erro)
+            raise ValueError(msg_erro)
         except Exception as e:
-            self.logger.error(f"Erro no upload do áudio: {str(e)}")
-            raise ValueError(f"Erro no upload: {str(e)}")
+            logger.exception(f"Erro no upload do áudio: {str(e)}")
+            raise
     
     async def enviar_mensagem_texto(self, telefone: str, texto: str) -> str:
         """
@@ -207,36 +217,41 @@ class WhatsAppService:
                 }
             }
             
-            self.logger.debug(f"Enviando mensagem de texto para {telefone}: {texto[:50]}...")
+            logger.debug(f"Enviando mensagem de texto para {telefone}: {texto[:50]}...")
             
             response = await self.httpx_client.post(url, headers=headers, json=payload)
             
             if response.status_code == 400:
-                self.logger.error(f"Número de telefone inválido: {response.text}")
-                raise ValueError("Número de telefone inválido")
+                msg_erro = "Número de telefone inválido"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             elif response.status_code == 429:
-                self.logger.error("Rate limit excedido")
-                raise ValueError("Rate limit excedido")
+                msg_erro = "Rate limit excedido"
+                logger.warning(msg_erro)
+                raise ValueError(msg_erro)
             elif response.status_code != 200:
-                self.logger.error(f"Erro no envio: {response.status_code} - {response.text}")
-                raise ValueError(f"Erro no envio: {response.status_code}")
+                msg_erro = f"Erro no envio: {response.status_code}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
             data = response.json()
             message_id = data.get("messages", [{}])[0].get("id")
             
             if not message_id:
-                self.logger.error("ID da mensagem não encontrado na resposta")
-                raise ValueError("ID da mensagem não encontrado na resposta")
+                msg_erro = "ID da mensagem não encontrado na resposta"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
-            self.logger.info(f"Mensagem de texto enviada com sucesso. ID: {message_id}")
+            logger.info(f"Mensagem de texto enviada com sucesso. ID: {message_id}")
             return message_id
             
         except httpx.RequestError as e:
-            self.logger.error(f"Erro de requisição no envio: {str(e)}")
-            raise ValueError(f"Erro de requisição: {str(e)}")
+            msg_erro = f"Erro de requisição no envio: {str(e)}"
+            logger.error(msg_erro)
+            raise ValueError(msg_erro)
         except Exception as e:
-            self.logger.error(f"Erro no envio da mensagem: {str(e)}")
-            raise ValueError(f"Erro no envio: {str(e)}")
+            logger.exception(f"Erro no envio da mensagem: {str(e)}")
+            raise
     
     async def enviar_mensagem_audio(self, telefone: str, caminho_audio: Path) -> str:
         """
@@ -273,27 +288,29 @@ class WhatsAppService:
                 }
             }
             
-            self.logger.debug(f"Enviando mensagem de áudio para {telefone} (media_id: {media_id})")
+            logger.debug(f"Enviando mensagem de áudio para {telefone} (media_id: {media_id})")
             
             response = await self.httpx_client.post(url, headers=headers, json=payload)
             
             if response.status_code != 200:
-                self.logger.error(f"Erro no envio do áudio: {response.status_code} - {response.text}")
-                raise ValueError(f"Erro no envio do áudio: {response.status_code}")
+                msg_erro = f"Erro no envio do áudio: {response.status_code}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
             data = response.json()
             message_id = data.get("messages", [{}])[0].get("id")
             
             if not message_id:
-                self.logger.error("ID da mensagem não encontrado na resposta")
-                raise ValueError("ID da mensagem não encontrado na resposta")
+                msg_erro = "ID da mensagem não encontrado na resposta"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
             
-            self.logger.info(f"Mensagem de áudio enviada com sucesso. ID: {message_id}")
+            logger.info(f"Mensagem de áudio enviada com sucesso. ID: {message_id}")
             return message_id
             
         except Exception as e:
-            self.logger.error(f"Erro no envio da mensagem de áudio: {str(e)}")
-            raise ValueError(f"Erro no envio da mensagem de áudio: {str(e)}")
+            logger.exception(f"Erro no envio da mensagem de áudio: {str(e)}")
+            raise
     
     async def close(self) -> None:
         """
@@ -303,9 +320,10 @@ class WhatsAppService:
         """
         try:
             await self.httpx_client.aclose()
-            self.logger.debug("Cliente HTTP fechado com sucesso")
+            logger.debug("Cliente HTTP fechado com sucesso")
         except Exception as e:
-            self.logger.error(f"Erro ao fechar cliente HTTP: {str(e)}")
+            logger.exception(f"Erro ao fechar cliente HTTP: {str(e)}")
+            raise
     
     # Métodos legados mantidos para compatibilidade
     def verificar_webhook(self, verify_token: str) -> bool:
