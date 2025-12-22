@@ -56,6 +56,9 @@ Cada documentação de funcionalidade deve incluir:
 - Data e motivo da última modificação
 - Versão ou referência de commit
 
+### Ignorar
+- Ingorar os arquivos presentes na pasta `docs/ignore`
+
 ## Diretrizes de Uso
 
 1. **Criar**: Adicione novos arquivos ao implementar funcionalidades significativas
