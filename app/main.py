@@ -46,29 +46,23 @@ async def startup_event():
             "Você pode copiar o arquivo .env.example para .env e preencher os valores necessários.\n"
         )
         raise RuntimeError(erro_msg)
-    
+
     # Criar diretórios necessários
     configuracao.diretorio_dados.mkdir(parents=True, exist_ok=True)
     configuracao.diretorio_temp_audio.mkdir(parents=True, exist_ok=True)
-    
+
     # Inicializar storages
-    usuario_storage = UsuarioStorage(
-        configuracao.diretorio_dados / "usuarios.json"
-    )
-    sessao_storage = SessaoStorage(
-        configuracao.diretorio_dados / "sessoes.json"
-    )
-    conversa_storage = ConversaStorage(
-        configuracao.diretorio_dados / "conversas.json"
-    )
-    
+    usuario_storage = UsuarioStorage(configuracao.diretorio_dados / "usuarios.json")
+    sessao_storage = SessaoStorage(configuracao.diretorio_dados / "sessoes.json")
+    conversa_storage = ConversaStorage(configuracao.diretorio_dados / "conversas.json")
+
     # Inicializar serviços
     usuario_service = UsuarioService(usuario_storage, sessao_storage)
     whatsapp_service = WhatsAppService()
     gladia_service = GladiaService()
     mistral_service = MistralService()
     murf_service = MurfService()
-    
+
     # Armazenar serviços no estado da aplicação para acesso global
     app.state.usuario_service = usuario_service
     app.state.usuario_storage = usuario_storage
@@ -78,7 +72,7 @@ async def startup_event():
     app.state.gladia_service = gladia_service
     app.state.mistral_service = mistral_service
     app.state.murf_service = murf_service
-    
+
     logger.info("Aplicação FrenchTalkIA inicializada com sucesso!")
     logger.info(f"Diretório de dados: {configuracao.diretorio_dados}")
     logger.info(f"Diretório de áudio temporário: {configuracao.diretorio_temp_audio}")
@@ -95,7 +89,7 @@ app = FastAPI(
     title="FrenchTalkIA",
     description="API para robô de aprendizado de francês via WhatsApp",
     version="0.1.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configurar CORS (se necessário)
@@ -114,11 +108,7 @@ app.include_router(webhook.router)
 @app.get("/")
 async def root():
     """Endpoint raiz da aplicação."""
-    return {
-        "message": "FrenchTalkIA API",
-        "version": "0.1.0",
-        "status": "operacional"
-    }
+    return {"message": "FrenchTalkIA API", "version": "0.1.0", "status": "operacional"}
 
 
 @app.get("/health")
@@ -130,14 +120,14 @@ async def health_check():
             "servico": "FrenchTalkIA",
             "ambiente": "desconhecido",
             "versao": "0.1.0",
-            "erro": "Configuração não carregada - verifique as variáveis de ambiente"
+            "erro": "Configuração não carregada - verifique as variáveis de ambiente",
         }
-    
+
     return {
         "status": "ok",
         "servico": "FrenchTalkIA",
         "ambiente": configuracao.ambiente,
-        "versao": "0.1.0"
+        "versao": "0.1.0",
     }
 
 
@@ -155,10 +145,10 @@ async def info():
                 "health": "/health",
                 "webhook_whatsapp": "/webhook/whatsapp",
                 "docs": "/docs",
-                "redoc": "/redoc"
-            }
+                "redoc": "/redoc",
+            },
         }
-    
+
     return {
         "nome": "FrenchTalkIA",
         "descricao": "API para robô de aprendizado de francês via WhatsApp",
@@ -170,18 +160,12 @@ async def info():
             "health": "/health",
             "webhook_whatsapp": "/webhook/whatsapp",
             "docs": "/docs",
-            "redoc": "/redoc"
-        }
+            "redoc": "/redoc",
+        },
     }
 
 
 if __name__ == "__main__":
     import uvicorn
-    
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

@@ -9,28 +9,44 @@ from app.utils.logger import logger
 
 class ConfiguracaoApp(BaseSettings):
     """Configuração da aplicação usando Pydantic Settings."""
-    
+
     # WhatsApp Cloud API
-    whatsapp_token: str = Field(..., alias="WHATSAPP_TOKEN", description="Token de autenticação da WhatsApp Cloud API")
-    whatsapp_phone_number_id: str = Field(..., alias="WHATSAPP_PHONE_NUMBER_ID", description="ID do número de telefone WhatsApp")
-    whatsapp_verify_token: str = Field(..., alias="WHATSAPP_VERIFY_TOKEN", description="Token para verificação do webhook")
-    
+    whatsapp_token: str = Field(
+        ..., alias="WHATSAPP_TOKEN", description="Token de autenticação da WhatsApp Cloud API"
+    )
+    whatsapp_phone_number_id: str = Field(
+        ..., alias="WHATSAPP_PHONE_NUMBER_ID", description="ID do número de telefone WhatsApp"
+    )
+    whatsapp_verify_token: str = Field(
+        ..., alias="WHATSAPP_VERIFY_TOKEN", description="Token para verificação do webhook"
+    )
+
     # APIs Externas
     mistral_api_key: str = Field(..., alias="MISTRAL_API_KEY", description="Chave da API Mistral")
     gladia_api_key: str = Field(..., alias="GLADIA_API_KEY", description="Chave da API Gladia")
     murf_api_key: str = Field(..., alias="MURF_API_KEY", description="Chave da API Murf")
-    
+
     # Configurações da Aplicação
-    ambiente: Literal["dev", "prod"] = Field(default="dev", alias="AMBIENTE", description="Ambiente de execução")
-    diretorio_dados: Path = Field(default=Path("./data"), alias="DIRETORIO_DADOS", description="Caminho para armazenamento JSON")
-    diretorio_temp_audio: Path = Field(default=Path("./temp/audio"), alias="DIRETORIO_TEMP_AUDIO", description="Caminho para arquivos temporários")
-    
+    ambiente: Literal["dev", "prod"] = Field(
+        default="dev", alias="AMBIENTE", description="Ambiente de execução"
+    )
+    diretorio_dados: Path = Field(
+        default=Path("./data"),
+        alias="DIRETORIO_DADOS",
+        description="Caminho para armazenamento JSON",
+    )
+    diretorio_temp_audio: Path = Field(
+        default=Path("./temp/audio"),
+        alias="DIRETORIO_TEMP_AUDIO",
+        description="Caminho para arquivos temporários",
+    )
+
     model_config = {
         "env_file": ".env",
         "case_sensitive": False,
         "populate_by_name": True,
     }
-        
+
     @field_validator("diretorio_dados", "diretorio_temp_audio", mode="before")
     @classmethod
     def converter_path(cls, v: Union[str, Path]) -> Path:
@@ -38,9 +54,16 @@ class ConfiguracaoApp(BaseSettings):
         if isinstance(v, str):
             return Path(v)
         return v
-    
-    @field_validator("whatsapp_token", "whatsapp_phone_number_id", "whatsapp_verify_token",
-               "mistral_api_key", "gladia_api_key", "murf_api_key", mode="before")
+
+    @field_validator(
+        "whatsapp_token",
+        "whatsapp_phone_number_id",
+        "whatsapp_verify_token",
+        "mistral_api_key",
+        "gladia_api_key",
+        "murf_api_key",
+        mode="before",
+    )
     @classmethod
     def validar_campos_obrigatorios(cls, v: str) -> str:
         """Valida que campos obrigatórios não estão vazios."""
@@ -58,15 +81,15 @@ def get_configuracao() -> ConfiguracaoApp:
     """
     Retorna a instância singleton da configuração.
     Carrega a configuração a partir das variáveis de ambiente ou do arquivo .env.
-    
+
     Raises:
         ValueError: Se as variáveis de ambiente obrigatórias não estiverem definidas.
-        
+
     Returns:
         ConfiguracaoApp: Instância da configuração da aplicação.
     """
     global _configuracao
-    
+
     if _configuracao is None:
         try:
             _configuracao = ConfiguracaoApp()  # type: ignore[call-arg]
@@ -83,7 +106,7 @@ def get_configuracao() -> ConfiguracaoApp:
                 "- MURF_API_KEY"
             )
             raise ValueError(erro_msg) from e
-    
+
     return _configuracao
 
 
