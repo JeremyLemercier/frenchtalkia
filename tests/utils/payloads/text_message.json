@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "123456789012345",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "5511999999999",
+              "phone_number_id": "123456789012345"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "João Silva"
+                },
+                "wa_id": "5511999999999"
+              }
+            ],
+            "messages": [
+              {
+                "from": "5511999999999",
+                "id": "wamid.HBgMNTUxMTk5OTk5OTk5OQFQSVJBRF9TQU1QTEUuQ0hBVF9TRVJWSUNFX0NPTk5FQ1RJT04",
+                "timestamp": "1704067200",
+                "type": "text",
+                "text": {
+                  "body": "Olá, como você está?"
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

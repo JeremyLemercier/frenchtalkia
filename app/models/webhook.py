@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class WebhookMessage(BaseModel):
@@ -11,8 +11,7 @@ class WebhookMessage(BaseModel):
     timestamp: str = Field(..., description="Timestamp da mensagem")
     type: str = Field(..., description="Tipo da mensagem (text, audio, etc.)")
     
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class TextMessage(WebhookMessage):

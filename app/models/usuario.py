@@ -1,8 +1,7 @@
 from datetime import date, datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
-from pydantic.config import ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 
 class Usuario(BaseModel):
@@ -29,12 +28,17 @@ class Usuario(BaseModel):
             return True
         return False
     
-    model_config = ConfigDict(
-        json_encoders={
-            datetime: lambda v: v.isoformat(),
-            date: lambda v: v.isoformat(),
-        }
-    )
+    model_config = ConfigDict()
+    
+    @field_serializer('data_cadastro')
+    def serialize_data_cadastro(self, value: datetime) -> str:
+        """Serializa datetime para string ISO format."""
+        return value.isoformat()
+    
+    @field_serializer('ultima_atualizacao_cota')
+    def serialize_ultima_atualizacao_cota(self, value: date) -> str:
+        """Serializa date para string ISO format."""
+        return value.isoformat()
         
     def to_dict(self) -> dict[str, Any]:
         """Converte o modelo para dicionário, tratando tipos especiais."""

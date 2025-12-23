@@ -30,6 +30,11 @@ async def webhook_verify(request: Request) -> Response:
         # Obter configuração
         config = get_configuracao()
         
+        # Validar se hub.challenge está presente
+        if not hub_challenge:
+            logger.warning("hub.challenge não fornecido")
+            return Response(status_code=403)
+        
         # Validar se hub.mode == "subscribe"
         if hub_mode != "subscribe":
             logger.warning(f"hub.mode inválido: {hub_mode}")

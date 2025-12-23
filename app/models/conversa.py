@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 
 class Conversa(BaseModel):
@@ -18,11 +18,17 @@ class Conversa(BaseModel):
     feedback_evaluation: int | None = Field(None, description="Avaliação do feedback (1=bom, 0=problema)")
     feedback_comment: str | None = Field(None, description="Comentário do feedback")
     
-    model_config = {
-        "json_encoders": {
-            datetime: lambda v: v.isoformat(),
-        }
-    }
+    model_config = ConfigDict()
+    
+    @field_serializer('data_inicio')
+    def serialize_data_inicio(self, value: datetime) -> str:
+        """Serializa datetime para string ISO format."""
+        return value.isoformat()
+    
+    @field_serializer('data_fim')
+    def serialize_data_fim(self, value: datetime | None) -> str | None:
+        """Serializa datetime opcional para string ISO format."""
+        return value.isoformat() if value else None
         
     def to_dict(self) -> dict[str, Any]:
         """Converte o modelo para dicionário, tratando tipos especiais."""
