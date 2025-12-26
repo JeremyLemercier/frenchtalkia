@@ -40,6 +40,11 @@ class ConfiguracaoApp(BaseSettings):
         alias="DIRETORIO_TEMP_AUDIO",
         description="Caminho para arquivos temporários",
     )
+    integration_test_mode: bool = Field(
+        default=False,
+        alias="INTEGRATION_TEST_MODE",
+        description="Ativa modo de testes de integração para armazenar dados extraídos do webhook",
+    )
 
     model_config = {
         "env_file": ".env",

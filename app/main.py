@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +15,9 @@ from app.storage.conversa_storage import ConversaStorage
 from app.storage.sessao_storage import SessaoStorage
 from app.storage.usuario_storage import UsuarioStorage
 from app.utils.logger import logger
+
+# Constantes
+APP_DESCRIPTION = "API para robô de aprendizado de francês via WhatsApp"
 
 
 @asynccontextmanager
@@ -58,7 +61,7 @@ async def startup_event():
 
     # Inicializar serviços
     usuario_service = UsuarioService(usuario_storage, sessao_storage)
-    whatsapp_service = WhatsAppService()
+    whatsapp_service = WhatsAppService(configuracao)
     gladia_service = GladiaService()
     mistral_service = MistralService()
     murf_service = MurfService()
@@ -87,7 +90,7 @@ async def shutdown_event():
 # Criar aplicação FastAPI com gerenciamento de ciclo de vida
 app = FastAPI(
     title="FrenchTalkIA",
-    description="API para robô de aprendizado de francês via WhatsApp",
+    description=APP_DESCRIPTION,
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -106,13 +109,13 @@ app.include_router(webhook.router)
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, Any]:
     """Endpoint raiz da aplicação."""
     return {"message": "FrenchTalkIA API", "version": "0.1.0", "status": "operacional"}
 
 
 @app.get("/health")
-async def health_check():
+async def health_check() -> dict[str, Any]:
     """Endpoint de health check."""
     if configuracao is None:
         return {
@@ -132,12 +135,12 @@ async def health_check():
 
 
 @app.get("/info")
-async def info():
+async def info() -> dict[str, Any]:
     """Endpoint com informações detalhadas da aplicação."""
     if configuracao is None:
         return {
             "nome": "FrenchTalkIA",
-            "descricao": "API para robô de aprendizado de francês via WhatsApp",
+            "descricao": APP_DESCRIPTION,
             "versao": "0.1.0",
             "status": "erro_configuracao",
             "erro": "Configuração não carregada - verifique as variáveis de ambiente",
@@ -146,22 +149,21 @@ async def info():
                 "webhook_whatsapp": "/webhook/whatsapp",
                 "docs": "/docs",
                 "redoc": "/redoc",
-            },
+            }
         }
 
     return {
         "nome": "FrenchTalkIA",
-        "descricao": "API para robô de aprendizado de francês via WhatsApp",
+        "descricao": APP_DESCRIPTION,
         "versao": "0.1.0",
+        "status": "operacional",
         "ambiente": configuracao.ambiente,
-        "diretorio_dados": str(configuracao.diretorio_dados),
-        "diretorio_temp_audio": str(configuracao.diretorio_temp_audio),
         "endpoints": {
             "health": "/health",
             "webhook_whatsapp": "/webhook/whatsapp",
             "docs": "/docs",
             "redoc": "/redoc",
-        },
+        }
     }
 
 

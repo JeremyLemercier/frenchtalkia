@@ -1,6 +1,10 @@
+import hashlib
+import json
+import shutil
 import time
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import httpx
 
@@ -305,6 +309,77 @@ class WhatsAppService:
         except Exception as e:
             logger.exception(f"Erro no envio da mensagem de áudio: {str(e)}")
             raise
+
+    def salvar_resultado_integracao(
+        self,
+        tipo_mensagem: str,
+        dados_extraidos: Dict[str, Any],
+        arquivo_audio: Optional[Path] = None,
+    ) -> Optional[Path]:
+        """
+        Salva resultado de integração para análise manual.
+
+        Args:
+            tipo_mensagem: Tipo da mensagem (text/audio)
+            dados_extraidos: Dados extraídos do webhook
+            arquivo_audio: Caminho do arquivo de áudio (opcional)
+
+        Returns:
+            Optional[Path]: Caminho do diretório de resultados ou None se modo desativado
+        """
+        if not self.config.integration_test_mode:
+            return None
+
+        try:
+            # Criar diretório base de resultados
+            results_dir = Path("tests/integration/results")
+            results_dir.mkdir(parents=True, exist_ok=True)
+
+            # Criar subdiretório com timestamp
+            timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            result_subdir = results_dir / timestamp_str
+            result_subdir.mkdir(parents=True, exist_ok=True)
+
+            # Salvar dados extraídos
+            extracted_data_path = result_subdir / "extracted_data.json"
+            with open(extracted_data_path, "w", encoding="utf-8") as f:
+                json.dump(dados_extraidos, f, indent=2, ensure_ascii=False)
+
+            # Preparar metadata
+            metadata: Dict[str, Any] = {
+                "timestamp_recebimento": datetime.now().isoformat(),
+                "tipo_mensagem": tipo_mensagem,
+                "telefone": dados_extraidos.get("telefone"),
+            }
+
+            # Se áudio: copiar arquivo e calcular hash
+            if arquivo_audio and arquivo_audio.exists():
+                audio_dest = result_subdir / "audio_received.ogg"
+                shutil.copy2(arquivo_audio, audio_dest)
+
+                # Calcular hash SHA256
+                with open(audio_dest, "rb") as f:
+                    audio_bytes = f.read()
+                    sha256_hash = hashlib.sha256(audio_bytes).hexdigest()
+
+                # Adicionar informações do áudio ao metadata
+                metadata.update({
+                    "tamanho_bytes": len(audio_bytes),
+                    "sha256": sha256_hash,
+                    "mime_type": dados_extraidos.get("mime_type", "audio/ogg; codecs=opus"),
+                })
+
+            # Salvar metadata
+            metadata_path = result_subdir / "metadata.json"
+            with open(metadata_path, "w", encoding="utf-8") as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
+
+            logger.info(f"Resultado de integração salvo em {result_subdir}")
+            return result_subdir
+
+        except Exception as e:
+            logger.exception(f"Erro ao salvar resultado de integração: {str(e)}")
+            return None
 
     async def close(self) -> None:
         """
