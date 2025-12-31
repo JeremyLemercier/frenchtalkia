@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
@@ -40,10 +40,10 @@ class ConfiguracaoApp(BaseSettings):
         alias="DIRETORIO_TEMP_AUDIO",
         description="Caminho para arquivos temporários",
     )
-    integration_test_mode: bool = Field(
+    integration_whatsapp: bool = Field(
         default=False,
-        alias="INTEGRATION_TEST_MODE",
-        description="Ativa modo de testes de integração para armazenar dados extraídos do webhook",
+        alias="INTEGRATION_WHATSAPP",
+        description="Ativa modo de integração WhatsApp para armazenar dados extraídos do webhook",
     )
 
     model_config = {
@@ -54,7 +54,7 @@ class ConfiguracaoApp(BaseSettings):
 
     @field_validator("diretorio_dados", "diretorio_temp_audio", mode="before")
     @classmethod
-    def converter_path(cls, v: Union[str, Path]) -> Path:
+    def converter_path(cls, v: str | Path) -> Path:
         """Converte string para Path se necessário."""
         if isinstance(v, str):
             return Path(v)

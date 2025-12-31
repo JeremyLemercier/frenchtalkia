@@ -1,17 +1,16 @@
-from .webhook import (
-    WebhookMessage,
-    TextMessage,
-    AudioMessage,
-    WebhookContact,
-    WebhookMetadata,
-    WebhookValue,
-    WebhookChange,
-    WebhookEntry,
-    WebhookPayload,
-)
-
-from .usuario import Usuario
 from .conversa import Conversa
+from .usuario import Usuario
+from .webhook import (
+    AudioMessage,
+    TextMessage,
+    WebhookChange,
+    WebhookContact,
+    WebhookEntry,
+    WebhookMessage,
+    WebhookMetadata,
+    WebhookPayload,
+    WebhookValue,
+)
 
 __all__ = [
     "Usuario",

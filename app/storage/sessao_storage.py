@@ -1,6 +1,6 @@
+from datetime import datetime
 from pathlib import Path
 from typing import Any
-from datetime import datetime
 
 from app.models.sessao import EstadoSessao, Sessao
 from app.storage.base_storage import BaseStorage

@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 from app.config import ConfiguracaoApp
 from app.main import app
 
-
 # Criar cliente de teste
 client = TestClient(app)
 
@@ -29,7 +28,7 @@ def mock_config():
 def text_message_payload():
     """Fixture para carregar payload de mensagem de texto."""
     payload_path = Path(__file__).parent.parent / "utils" / "payloads" / "text_message.json"
-    with open(payload_path, "r", encoding="utf-8") as f:
+    with open(payload_path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -37,7 +36,7 @@ def text_message_payload():
 def audio_message_payload():
     """Fixture para carregar payload de mensagem de áudio."""
     payload_path = Path(__file__).parent.parent / "utils" / "payloads" / "audio_message.json"
-    with open(payload_path, "r", encoding="utf-8") as f:
+    with open(payload_path, encoding="utf-8") as f:
         return json.load(f)
 
 

@@ -66,7 +66,7 @@
 	- Branches par `mensagem_tipo = mensagem_dict.get("type")` :
 		- `text` :
 			- `_processar_texto(mensagem_dict)` (utilise `TextMessage.model_validate`) -> renvoie `dados` = `{telefone, mensagem_id, timestamp, tipo:'text', conteudo}`.
-			- Si `config.integration_test_mode` vrai : `_salvar_integracao(whatsapp_service, "text", dados_extraidos)` -> `WhatsAppService.salvar_resultado_integracao()` sauvegarde artefacts tests dans `tests/integration/results/...`.
+			- Si `config.integration_whatsapp` vrai : `_salvar_integracao(whatsapp_service, "text", dados_extraidos)` -> `WhatsAppService.salvar_resultado_integracao()` sauvegarde artefacts tests dans `tests/integration/results/...`.
 			- Planifie traitement en arrière-plan : `background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))` et retourne immédiatement `_criar_resposta("received","Mensagem de texto recebida e agendada", dados_extraidos)`.
 			- Background (`_process_message_bg`) :
 				1. `texto_usuario = dados.get("conteudo")`.
@@ -75,7 +75,7 @@
 
 		- `audio` :
 			- `_processar_audio(mensagem_dict)` (utilise `AudioMessage.model_validate`) -> renvoie `dados` = `{telefone, mensagem_id, timestamp, tipo:'audio', media_id, mime_type}`.
-			- Si `config.integration_test_mode` : appelle `_baixar_audio_para_integracao(...)` puis `_salvar_integracao(...)` pour conserver audio et métadonnées.
+			- Si `config.integration_whatsapp` : appelle `_baixar_audio_para_integracao(...)` puis `_salvar_integracao(...)` pour conserver audio et métadonnées.
 			- Planifie traitement en arrière-plan et retourne `_criar_resposta("received","Mensagem de áudio recebida e agendada", dados_extraidos)`.
 			- Background (`_process_message_bg`) :
 				1. `arquivo = await whatsapp_svc.baixar_audio(media_id)` -> Path local du fichier audio.
@@ -84,7 +84,7 @@
 				4. `caminho_audio, duration = await asyncio.to_thread(murf_svc.gerar_audio, resposta_texto)` -> Path audio TTS + durée.
 				5. `await whatsapp_svc.enviar_mensagem_audio(telefone, caminho_audio)` -> envoi audio via WhatsApp.
 
-		- Autre type : `_processar_tipo_desconhecido` renvoie un dict minimal; si `integration_test_mode` enregistre; retourne accepted.
+		- Autre type : `_processar_tipo_desconhecido` renvoie un dict minimal; si `integration_whatsapp` enregistre; retourne accepted.
 
 **Modèles & validation (Pydantic)**
 - `app/models/webhook.py` :
@@ -107,7 +107,7 @@
 		- `fazer_upload_audio(caminho_audio: Path) -> str` (async) : uploade fichier et retourne `media_id`.
 		- `enviar_mensagem_texto(telefone: str, texto: str) -> str` (async) : envoie texte, retourne `message_id`.
 		- `enviar_mensagem_audio(telefone: str, caminho_audio: Path) -> str` (async) : upload + envoi audio, retourne `message_id`.
-		- `salvar_resultado_integracao(...) -> Optional[Path]` : si `integration_test_mode` active, écrit `extracted_data.json` et `metadata.json` et copie audio reçu.
+		- `salvar_resultado_integracao(...) -> Optional[Path]` : si `integration_whatsapp` active, écrit `extracted_data.json` et `metadata.json` et copie audio reçu.
 	- Exceptions et codes HTTP sont gérés et remontés sous forme de `ValueError` ou logs.
 
 - `GladiaService()` (`app/services/gladia_service.py`) — stub synchrone.

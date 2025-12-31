@@ -8,9 +8,9 @@ This test verifies that:
 4. health and info endpoints handle None configuracao gracefully
 """
 
+import asyncio
 import os
 import sys
-import asyncio
 
 
 def test_missing_env():

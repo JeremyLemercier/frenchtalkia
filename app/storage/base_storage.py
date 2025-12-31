@@ -36,7 +36,7 @@ class BaseStorage(ABC, Generic[T]):
         """
         try:
             with self._lock:
-                with open(self.caminho_arquivo, "r", encoding="utf-8") as f:
+                with open(self.caminho_arquivo, encoding="utf-8") as f:
                     return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return {}

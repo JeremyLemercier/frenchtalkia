@@ -1,20 +1,23 @@
 # Testes de Integração - WhatsApp Webhook
 
-Este diretório contém a infraestrutura para testes de integração manuais do webhook WhatsApp.
+Este diretório contém helpers pour isoler le comportement de test d'intégration WhatsApp.
 
 ## Visão Geral
 
-Os testes de integração **não são automatizados**. Eles funcionam capturando dados reais enviados do seu celular via WhatsApp e armazenando-os localmente para análise manual.
+Os testes de integração são manuais: ao ativar o modo de integração, a aplicação grava os artefatos recebidos para verificação humana.
 
-## Como Funciona
+## Como funciona
 
-Quando o modo `INTEGRATION_TEST_MODE=true` está ativo:
+Quando o modo `INTEGRATION_WHATSAPP=true` está ativo (variável de ambiente ou `.env`):
 
 1. O servidor recebe mensagens reais via webhook
 2. Extrai os dados da mensagem (texto ou áudio)
-3. Se for áudio, faz o download do arquivo
-4. Salva tudo em `tests/integration/results/{timestamp}/`
-5. Você pode então verificar manualmente se os dados foram extraídos corretamente
+3. Se for áudio, realiza o download do mídia (no background)
+4. Salva os artefatos em `tests/integration/results/{timestamp}/`
+ Quando o modo `INTEGRATION_WHATSAPP=true` está ativo (variável de ambiente ou `.env`):
+   - mensagem de texto: conteúdo em `tests/utils/texts/sample_text.txt`
+   - mensagem de áudio: arquivo `tests/utils/audios/sample_audio.ogg` é enviado como resposta
+5. Em modo integração, as respostas são **pré-definidas** para isolar apenas o fluxo WhatsApp (não executa STT/LLM/TTS reais):
 
 ## Estrutura de Resultados
 
@@ -35,141 +38,179 @@ tests/integration/results/
   "tipo": "text",
   "telefone": "5511999999999",
   "mensagem_id": "wamid.HBgLMTY1MDUwNzY1MjAVAgARGBI5QTNDQTVCM0Q0Q2RTY3RTcA",
-  "timestamp": "1704067200",
-  "conteudo": "Olá, como você está?"
-}
-```
+  ````markdown
+  # Testes de Integração - WhatsApp Webhook
 
-### Exemplo: `extracted_data.json` (Áudio)
+  Este diretório contém helpers para isolar o comportamento de teste de integração WhatsApp.
 
-```json
-{
-  "tipo": "audio",
-  "telefone": "5511888888888",
-  "mensagem_id": "wamid.HBgLMTY1MDUwNzY1MjAVAgARGBI5QTNDQTVCM0Q0Q2RTY3RTcA",
-  "timestamp": "1704067300",
-  "media_id": "1234567890123456",
-  "mime_type": "audio/ogg; codecs=opus"
-}
-```
+  ## Visão Geral
 
-### Exemplo: `metadata.json`
+  Os testes de integração são manuais: ao ativar o modo de integração, a aplicação grava os artefatos recebidos para verificação humana.
 
-```json
-{
-  "timestamp_recebimento": "2025-01-15T14:30:45.123456",
-  "tipo_mensagem": "audio",
-  "telefone": "5511888888888",
-  "tamanho_bytes": 12345,
-  "sha256": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
-  "mime_type": "audio/ogg; codecs=opus"
-}
-```
+  ## Como funciona
 
-## Guia de Uso
+  Quando o modo `INTEGRATION_WHATSAPP=true` está ativo (variável de ambiente ou `.env`):
 
-### 1. Preparar Ambiente
+  1. O servidor recebe mensagens reais via webhook
+  2. Extrai os dados da mensagem (texto ou áudio)
+  3. Se for áudio, realiza o download do mídia (no background)
+  4. Salva os artefatos em `tests/integration/results/{timestamp}/`
+  5. Em modo integração, as respostas são **pré-definidas** para isolar apenas o fluxo WhatsApp (não executa STT/LLM/TTS reais):
+    - mensagem de texto: conteúdo em `tests/utils/texts/sample_text.txt`
+    - mensagem de áudio: arquivo `tests/utils/audios/sample_audio.ogg` é enviado como resposta
 
-```bash
-# Copiar .env.example para .env
-cp .env.example .env
+  ## Estrutura de Resultados
 
-# Editar .env e definir:
-INTEGRATION_TEST_MODE=true
-WHATSAPP_TOKEN=seu_token_real
-WHATSAPP_PHONE_NUMBER_ID=seu_phone_id_real
-WHATSAPP_VERIFY_TOKEN=seu_verify_token_real
-```
+  Cada mensagem recebida cria um diretório com timestamp:
 
-### 2. Iniciar Servidor
+  ```
+  tests/integration/results/
+  └── 2025-01-15_14-30-45/
+      ├── extracted_data.json    # Dados extraídos do webhook
+      ├── metadata.json          # Metadados (timestamp, hash, tamanho)
+      └── audio_received.ogg     # Arquivo de áudio (se aplicável)
+  ```
 
-```bash
-# Usando uvicorn diretamente
-python -m uvicorn app.main:app --reload
+  ### Exemplo: `extracted_data.json` (Texto)
 
-# Ou usando o script principal
-python main.py
-```
+  ```json
+  {
+    "tipo": "text",
+    "telefone": "5511999999999",
+    "mensagem_id": "wamid.HBgLMTY1MDUwNzY1MjAVAgARGBI5QTNDQTVCM0Q0Q2RTY3RTcA",
+    "timestamp": "1704067200",
+    "conteudo": "Olá, como você está?"
+  }
+  ```
 
-### 3. Enviar Mensagens do Celular
+  ### Exemplo: `extracted_data.json` (Áudio)
 
-1. Abra WhatsApp no seu celular
-2. Envie uma mensagem de **texto** para o número WhatsApp configurado
-3. Envie uma mensagem de **áudio** para o número WhatsApp configurado
-4. Aguarde alguns segundos para processamento
+  ```json
+  {
+    "tipo": "audio",
+    "telefone": "5511888888888",
+    "mensagem_id": "wamid.HBgLMTY1MDUwNzY1MjAVAgARGBI5QTNDQTVCM0Q0Q2RTY3RTcA",
+    "timestamp": "1704067300",
+    "media_id": "1234567890123456",
+    "mime_type": "audio/ogg; codecs=opus"
+  }
+  ```
 
-### 4. Verificar Resultados
+  ### Exemplo: `metadata.json`
 
-```bash
-# Listar resultados capturados
-ls -la tests/integration/results/
+  ```json
+  {
+    "timestamp_recebimento": "2025-01-15T14:30:45.123456",
+    "tipo_mensagem": "audio",
+    "telefone": "5511888888888",
+    "tamanho_bytes": 12345,
+    "sha256": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+    "mime_type": "audio/ogg; codecs=opus"
+  }
+  ```
 
-# Examinar dados extraídos
-cat tests/integration/results/2025-01-15_14-30-45/extracted_data.json
-cat tests/integration/results/2025-01-15_14-30-45/metadata.json
+  ## Guia de uso
 
-# Reproduzir áudio recebido (requer ffplay ou similar)
-ffplay tests/integration/results/2025-01-15_14-30-45/audio_received.ogg
-```
+  ### 1. Preparar ambiente
 
-### 5. Validar Manualmente
+  ```bash
+  # Copiar .env.example para .env
+  cp .env.example .env
 
-- ✅ Abra os arquivos JSON em um editor de texto
-- ✅ Verifique se os dados correspondem ao que você enviou
-- ✅ Reproduza o áudio para validar qualidade
-- ✅ Verifique timestamps e hashes
-- ✅ Confirme que o telefone está correto
-- ✅ Confirme que o tipo de mensagem está correto
+  # Editar .env e definir:
+  INTEGRATION_WHATSAPP=true
+  WHATSAPP_TOKEN=seu_token_real
+  WHATSAPP_PHONE_NUMBER_ID=seu_phone_id_real
+  WHATSAPP_VERIFY_TOKEN=seu_verify_token_real
+  ```
 
-### 6. Limpar Resultados Antigos
+  ### 2. Iniciar servidor
 
-```bash
-# Remover todos os resultados
-rm -rf tests/integration/results/
+  ```bash
+  python -m uvicorn app.main:app --reload
+  ```
 
-# Ou usar função helper (se disponível)
-python -c "from tests.utils.integration_helpers import clear_integration_results; clear_integration_results()"
-```
+  ### 3. Enviar Mensagens do Celular
 
-## Logs
+  1. Abra WhatsApp no seu celular
+  2. Envie uma mensagem de **texto** para o número WhatsApp configurado
+  3. Envie uma mensagem de **áudio** para o número WhatsApp configurado
+  4. Aguarde alguns segundos para processamento
 
-Quando o modo de integração está ativo, você verá logs como:
+  ### 4. Verificar Resultados
 
-```
-INFO: Mensagem recebida - Tipo: text, Telefone: 5511999999999, ID: wamid.xxx
-INFO: Resultado de integração salvo em tests/integration/results/2025-01-15_14-30-45/
-```
+  ```bash
+  # Listar resultados capturados
+  ls -la tests/integration/results/
 
-## Troubleshooting
+  # Examinar dados extraídos
+  cat tests/integration/results/2025-01-15_14-30-45/extracted_data.json
+  cat tests/integration/results/2025-01-15_14-30-45/metadata.json
 
-### Nenhum resultado é salvo
+  # Reproduzir áudio recebido (requer ffplay ou similar)
+  ffplay tests/integration/results/2025-01-15_14-30-45/audio_received.ogg
+  ```
 
-- Verifique se `INTEGRATION_TEST_MODE=true` no `.env`
-- Verifique se o servidor está rodando
-- Verifique os logs do servidor para erros
+  ### 5. Validar Manualmente
 
-### Áudio não é baixado
+  - ✅ Abra os arquivos JSON em um editor de texto
+  - ✅ Verifique se os dados correspondem ao que você enviou
+  - ✅ Reproduza o áudio para validar qualidade
+  - ✅ Verifique timestamps e hashes
+  - ✅ Confirme que o telefone está correto
+  - ✅ Confirme que o tipo de mensagem está correto
 
-- Verifique se o `WHATSAPP_TOKEN` está correto
-- Verifique se o `WHATSAPP_PHONE_NUMBER_ID` está correto
-- Verifique os logs para erros de autenticação
+  ### 6. Limpar Resultados Antigos
 
-### Erro de permissão ao criar diretórios
+  ```bash
+  # Remover todos os resultados
+  rm -rf tests/integration/results/
 
-- Verifique se você tem permissão de escrita no diretório do projeto
-- Execute o servidor com permissões adequadas
+  # Ou usar função helper (se disponível)
+  python -c "from tests.utils.integration_helpers import clear_integration_results; clear_integration_results()"
+  ```
 
-## Notas Importantes
+  ## Logs
 
-- ⚠️ **Não commitar** os resultados de integração no Git (já está no `.gitignore`)
-- ⚠️ **Não compartilhar** os arquivos JSON pois contêm números de telefone reais
-- ⚠️ **Desativar** o modo de integração em produção (`INTEGRATION_TEST_MODE=false`)
-- ⚠️ **Limpar** resultados antigos periodicamente para economizar espaço
+  Quando o modo de integração está ativo, você verá logs como:
 
-## Próximos Passos
+  ```
+  INFO: Mensagem recebida - Tipo: text, Telefone: 5511999999999, ID: wamid.xxx
+  INFO: Resultado de integração salvo em tests/integration/results/2025-01-15_14-30-45/
+  ```
 
-Após validar manualmente que os dados estão sendo extraídos corretamente:
+  ## Troubleshooting
 
-1. Desative o modo de integração (`INTEGRATION_TEST_MODE=false`)
-2. Implemente a lógica de processamento real (STT, LLM, TTS)
-3. Teste o fluxo completo end-to-end
+  ### Nenhum resultado é salvo
+
+  - Verifique se `INTEGRATION_WHATSAPP=true` no `.env`
+  - Verifique se o servidor está rodando
+  - Verifique os logs do servidor para erros
+
+  ### Áudio não é baixado
+
+  - Verifique se o `WHATSAPP_TOKEN` está correto
+  - Verifique se o `WHATSAPP_PHONE_NUMBER_ID` está correto
+  - Verifique os logs para erros de autenticação
+
+  ### Erro de permissão ao criar diretórios
+
+  - Verifique se você tem permissão de escrita no diretório do projeto
+  - Execute o servidor com permissões adequadas
+
+  ## Notas Importantes
+
+  - ⚠️ **Não commitar** os resultados de integração no Git (já está no `.gitignore`)
+  - ⚠️ **Não compartilhar** os arquivos JSON pois contêm números de telefone reais
+  - ⚠️ **Desativar** o modo de integração em produção (`INTEGRATION_WHATSAPP=false`)
+  - ⚠️ **Limpar** resultados antigos periodicamente para economizar espaço
+
+  ## Próximos Passos
+
+  Após validar manualmente que os dados estão sendo extraídos corretamente:
+
+  1. Desative o modo de integração (`INTEGRATION_WHATSAPP=false`)
+  2. Implemente a lógica de processamento real (STT, LLM, TTS)
+  3. Teste o fluxo completo end-to-end
+
+  ````

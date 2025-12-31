@@ -14,27 +14,27 @@ def get_latest_integration_result() -> dict[str, Any] | None:
     results_dir = INTEGRATION_RESULTS_PATH
     if not results_dir.exists():
         return None
-    
+
     # Buscar diretórios com timestamp
     timestamp_dirs = sorted(
         [d for d in results_dir.iterdir() if d.is_dir()],
         key=lambda x: x.name,
         reverse=True
     )
-    
+
     if not timestamp_dirs:
         return None
-    
+
     latest_dir = timestamp_dirs[0]
     extracted_data_path = latest_dir / "extracted_data.json"
     metadata_path = latest_dir / "metadata.json"
-    
-    with open(extracted_data_path, "r", encoding="utf-8") as f:
+
+    with open(extracted_data_path, encoding="utf-8") as f:
         extracted_data = json.load(f)
-    
-    with open(metadata_path, "r", encoding="utf-8") as f:
+
+    with open(metadata_path, encoding="utf-8") as f:
         metadata = json.load(f)
-    
+
     return {**extracted_data, **metadata}
 
 
@@ -48,12 +48,12 @@ def list_integration_results() -> list[str]:
     results_dir = INTEGRATION_RESULTS_PATH
     if not results_dir.exists():
         return []
-    
+
     timestamp_dirs = sorted(
         [d.name for d in results_dir.iterdir() if d.is_dir()],
         key=lambda x: x
     )
-    
+
     return timestamp_dirs
 
 
@@ -70,13 +70,13 @@ def load_integration_result(timestamp: str) -> dict[str, Any]:
     result_dir = INTEGRATION_RESULTS_PATH / timestamp
     extracted_data_path = result_dir / "extracted_data.json"
     metadata_path = result_dir / "metadata.json"
-    
-    with open(extracted_data_path, "r", encoding="utf-8") as f:
+
+    with open(extracted_data_path, encoding="utf-8") as f:
         extracted_data = json.load(f)
-    
-    with open(metadata_path, "r", encoding="utf-8") as f:
+
+    with open(metadata_path, encoding="utf-8") as f:
         metadata = json.load(f)
-    
+
     return {**extracted_data, **metadata}
 
 
@@ -105,14 +105,14 @@ def verify_audio_file(path: Path) -> bool:
     """
     if not path.exists():
         return False
-    
+
     if path.stat().st_size == 0:
         return False
-    
+
     # Verificar extensão
     if path.suffix.lower() not in ['.ogg', '.mp3', '.aac', '.amr', '.m4a']:
         return False
-    
+
     return True
 
 
@@ -130,5 +130,5 @@ def verify_extracted_data(data: dict[str, Any], expected_fields: list[str]) -> b
     for field in expected_fields:
         if field not in data:
             return False
-    
+
     return True

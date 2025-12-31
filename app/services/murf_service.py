@@ -1,6 +1,6 @@
+import base64
 from pathlib import Path
 from typing import Any
-import base64
 
 
 class MurfService:

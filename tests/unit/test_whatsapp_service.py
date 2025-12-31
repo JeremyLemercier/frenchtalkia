@@ -6,7 +6,6 @@ import pytest
 from app.config import ConfiguracaoApp
 from app.services.whatsapp_service import WhatsAppService
 
-
 # ==================== Testes para Obter URL da Mídia ====================
 
 
@@ -21,22 +20,22 @@ async def test_obter_url_media_success(mock_config: ConfiguracaoApp, mock_httpx_
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "test_media_id_123"
     expected_url = "https://tmp-media.whatsapp.net/xyz123"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"url": expected_url}
     mock_httpx_client.get.return_value = mock_response
-    
+
     # Execute
     result = await service.obter_url_media(media_id)
-    
+
     # Verify
     assert result == expected_url
-    
+
     # Verificar chamada correta
     mock_httpx_client.get.assert_called_once_with(
         f"https://graph.facebook.com/v24.0/{media_id}",
@@ -56,18 +55,18 @@ async def test_obter_url_media_not_found(mock_config: ConfiguracaoApp, mock_http
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "nonexistent_media_id"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 404
     mock_httpx_client.get.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match=f"Mídia não encontrada: {media_id}"):
         await service.obter_url_media(media_id)
-    
+
     # Verificar chamada correta
     mock_httpx_client.get.assert_called_once_with(
         f"https://graph.facebook.com/v24.0/{media_id}",
@@ -87,14 +86,14 @@ async def test_obter_url_media_invalid_token(mock_config: ConfiguracaoApp, mock_
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "test_media_id_123"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 401
     mock_httpx_client.get.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="Token de acesso inválido"):
         await service.obter_url_media(media_id)
@@ -111,15 +110,15 @@ async def test_obter_url_media_missing_url_in_response(mock_config: Configuracao
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "test_media_id_123"
-    
+
     # Mock response sem URL
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"other_field": "value"}
     mock_httpx_client.get.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="URL não encontrada na resposta"):
         await service.obter_url_media(media_id)
@@ -139,30 +138,30 @@ async def test_baixar_audio_success(mock_config: ConfiguracaoApp, mock_httpx_cli
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "test_media_id_123"
     media_url = "https://tmp-media.whatsapp.net/xyz123"
     audio_content = b"fake_audio_content_ogg_bytes"
-    
+
     # Mock obter_url_media como AsyncMock
     mock_obter_url = AsyncMock(return_value=media_url)
-    
+
     with patch.object(service, 'obter_url_media', mock_obter_url):
         # Mock download response
         mock_download_response = MagicMock()
         mock_download_response.status_code = 200
         mock_download_response.content = audio_content
         mock_httpx_client.get.return_value = mock_download_response
-        
+
         # Execute
         result = await service.baixar_audio(media_id)
-    
+
     # Verify
     assert result.is_file()
     assert result.suffix == ".ogg"
     assert media_id in result.name
     assert result.read_bytes() == audio_content
-    
+
     # Verificar chamadas
     mock_obter_url.assert_called_once_with(media_id)
     mock_httpx_client.get.assert_called_once_with(
@@ -182,19 +181,19 @@ async def test_baixar_audio_url_expired(mock_config: ConfiguracaoApp, mock_httpx
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "test_media_id_123"
     media_url = "https://tmp-media.whatsapp.net/xyz123"
-    
+
     # Mock obter_url_media como AsyncMock
     mock_obter_url = AsyncMock(return_value=media_url)
-    
+
     with patch.object(service, 'obter_url_media', mock_obter_url):
         # Mock download response com erro 401
         mock_download_response = MagicMock()
         mock_download_response.status_code = 401
         mock_httpx_client.get.return_value = mock_download_response
-        
+
         # Execute & Verify
         with pytest.raises(ValueError, match="Erro ao baixar áudio: 401"):
             await service.baixar_audio(media_id)
@@ -211,19 +210,19 @@ async def test_baixar_audio_download_error(mock_config: ConfiguracaoApp, mock_ht
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     media_id = "test_media_id_123"
     media_url = "https://tmp-media.whatsapp.net/xyz123"
-    
+
     # Mock obter_url_media como AsyncMock
     mock_obter_url = AsyncMock(return_value=media_url)
-    
+
     with patch.object(service, 'obter_url_media', mock_obter_url):
         # Mock download response com erro 500
         mock_download_response = MagicMock()
         mock_download_response.status_code = 500
         mock_httpx_client.get.return_value = mock_download_response
-        
+
         # Execute & Verify
         with pytest.raises(ValueError, match="Erro ao baixar áudio: 500"):
             await service.baixar_audio(media_id)
@@ -243,33 +242,33 @@ async def test_fazer_upload_audio_success(mock_config: ConfiguracaoApp, mock_htt
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     expected_media_id = "uploaded_media_id_456"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"id": expected_media_id}
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute
     result = await service.fazer_upload_audio(sample_audio_file)
-    
+
     # Verify
     assert result == expected_media_id
-    
+
     # Verificar chamada correta
     expected_url = f"https://graph.facebook.com/v24.0/{mock_config.whatsapp_phone_number_id}/media"
     expected_headers = {"Authorization": f"Bearer {mock_config.whatsapp_token}"}
-    
+
     # Verificar que foi chamado com os parâmetros corretos
     assert mock_httpx_client.post.call_count == 1
     call_args = mock_httpx_client.post.call_args
-    
+
     # Verificar URL e headers
     assert call_args.args[0] == expected_url
     assert call_args.kwargs["headers"] == expected_headers
-    
+
     # Verificar estrutura do multipart
     assert "files" in call_args.kwargs
     files = call_args.kwargs["files"]
@@ -290,12 +289,12 @@ async def test_fazer_upload_audio_file_too_large(mock_config: ConfiguracaoApp, m
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 413
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="Arquivo de áudio muito grande"):
         await service.fazer_upload_audio(sample_audio_file)
@@ -312,12 +311,12 @@ async def test_fazer_upload_audio_invalid_format(mock_config: ConfiguracaoApp, m
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 400
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="Formato de áudio inválido"):
         await service.fazer_upload_audio(sample_audio_file)
@@ -334,13 +333,13 @@ async def test_fazer_upload_audio_missing_media_id(mock_config: ConfiguracaoApp,
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     # Mock response sem media_id
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"other_field": "value"}
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="ID do mídia não encontrado na resposta"):
         await service.fazer_upload_audio(sample_audio_file)
@@ -360,23 +359,23 @@ async def test_enviar_mensagem_texto_success(mock_config: ConfiguracaoApp, mock_
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     telefone = "5511999999999"
     texto = "Olá, esta é uma mensagem de teste"
     expected_message_id = "wamid.test.message.123"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"messages": [{"id": expected_message_id}]}
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute
     result = await service.enviar_mensagem_texto(telefone, texto)
-    
+
     # Verify
     assert result == expected_message_id
-    
+
     # Verificar payload correto
     expected_url = f"https://graph.facebook.com/v24.0/{mock_config.whatsapp_phone_number_id}/messages"
     expected_headers = {
@@ -390,7 +389,7 @@ async def test_enviar_mensagem_texto_success(mock_config: ConfiguracaoApp, mock_
         "type": "text",
         "text": {"preview_url": False, "body": texto},
     }
-    
+
     mock_httpx_client.post.assert_called_once_with(
         expected_url,
         headers=expected_headers,
@@ -409,15 +408,15 @@ async def test_enviar_mensagem_texto_invalid_phone(mock_config: ConfiguracaoApp,
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     telefone = "invalid_phone"
     texto = "Test message"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 400
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="Número de telefone inválido"):
         await service.enviar_mensagem_texto(telefone, texto)
@@ -434,15 +433,15 @@ async def test_enviar_mensagem_texto_rate_limit(mock_config: ConfiguracaoApp, mo
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     telefone = "5511999999999"
     texto = "Test message"
-    
+
     # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 429
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="Rate limit excedido"):
         await service.enviar_mensagem_texto(telefone, texto)
@@ -459,16 +458,16 @@ async def test_enviar_mensagem_texto_missing_message_id(mock_config: Configuraca
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     telefone = "5511999999999"
     texto = "Test message"
-    
+
     # Mock response sem message_id
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"messages": [{}]}
     mock_httpx_client.post.return_value = mock_response
-    
+
     # Execute & Verify
     with pytest.raises(ValueError, match="ID da mensagem não encontrado na resposta"):
         await service.enviar_mensagem_texto(telefone, texto)
@@ -485,30 +484,30 @@ async def test_enviar_mensagem_audio_success(mock_config: ConfiguracaoApp, mock_
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     telefone = "5511999999999"
     expected_media_id = "uploaded_media_id_456"
     expected_message_id = "wamid.test.audio.123"
-    
+
     # Mock upload como AsyncMock
     mock_upload = AsyncMock(return_value=expected_media_id)
-    
+
     with patch.object(service, 'fazer_upload_audio', mock_upload):
         # Mock envio response
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"messages": [{"id": expected_message_id}]}
         mock_httpx_client.post.return_value = mock_response
-        
+
         # Execute
         result = await service.enviar_mensagem_audio(telefone, sample_audio_file)
-    
+
     # Verify
     assert result == expected_message_id
-    
+
     # Verificar sequência correta
     mock_upload.assert_called_once_with(sample_audio_file)
-    
+
     # Verificar payload correto
     expected_url = f"https://graph.facebook.com/v24.0/{mock_config.whatsapp_phone_number_id}/messages"
     expected_headers = {
@@ -522,7 +521,7 @@ async def test_enviar_mensagem_audio_success(mock_config: ConfiguracaoApp, mock_
         "type": "audio",
         "audio": {"id": expected_media_id, "voice": True},
     }
-    
+
     mock_httpx_client.post.assert_called_once_with(
         expected_url,
         headers=expected_headers,
@@ -540,12 +539,12 @@ async def test_enviar_mensagem_audio_upload_error(mock_config: ConfiguracaoApp, 
     """
     # Setup
     service = WhatsAppService(mock_config)
-    
+
     telefone = "5511999999999"
-    
+
     # Mock upload com erro como AsyncMock
     mock_upload = AsyncMock(side_effect=ValueError("Upload failed"))
-    
+
     with patch.object(service, 'fazer_upload_audio', mock_upload):
         # Execute & Verify
         with pytest.raises(ValueError, match="Upload failed"):
@@ -562,10 +561,10 @@ async def test_close_success(mock_config: ConfiguracaoApp, mock_httpx_client: As
     # Setup
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
-    
+
     # Execute
     await service.close()
-    
+
     # Verify
     mock_httpx_client.aclose.assert_called_once()
 
@@ -582,7 +581,7 @@ async def test_close_error(mock_config: ConfiguracaoApp, mock_httpx_client: Asyn
     service = WhatsAppService(mock_config)
     service.httpx_client = mock_httpx_client
     mock_httpx_client.aclose.side_effect = Exception("Close error")
-    
+
     # Execute & Verify
     with pytest.raises(Exception, match="Close error"):
         await service.close()
@@ -600,10 +599,10 @@ def test_verificar_webhook_valid_token(mock_config: ConfiguracaoApp):
     """
     # Setup
     service = WhatsAppService(mock_config)
-    
+
     # Execute
     result = service.verificar_webhook(mock_config.whatsapp_verify_token)
-    
+
     # Verify
     assert result is True
 
@@ -617,10 +616,10 @@ def test_verificar_webhook_invalid_token(mock_config: ConfiguracaoApp):
     """
     # Setup
     service = WhatsAppService(mock_config)
-    
+
     # Execute
     result = service.verificar_webhook("invalid_token")
-    
+
     # Verify
     assert result is False
 
@@ -634,11 +633,11 @@ def test_processar_webhook_legacy(mock_config: ConfiguracaoApp):
     """
     # Setup
     service = WhatsAppService(mock_config)
-    
+
     payload = {"test": "payload"}
-    
+
     # Execute
     result = service.processar_webhook(payload)
-    
+
     # Verify
     assert result == payload

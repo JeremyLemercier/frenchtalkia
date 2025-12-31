@@ -44,7 +44,7 @@ class Sessao(BaseModel):
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Sessao":
+    def from_dict(cls, data: dict[str, Any]) -> Sessao:
         """Cria instância a partir de dicionário, tratando tipos especiais."""
         if "estado_atual" in data and isinstance(data["estado_atual"], str):
             data["estado_atual"] = EstadoSessao(data["estado_atual"])

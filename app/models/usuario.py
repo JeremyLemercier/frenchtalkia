@@ -52,7 +52,7 @@ class Usuario(BaseModel):
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Usuario":
+    def from_dict(cls, data: dict[str, Any]) -> Usuario:
         """Cria instância a partir de dicionário, tratando tipos especiais."""
         if "data_cadastro" in data and isinstance(data["data_cadastro"], str):
             data["data_cadastro"] = datetime.fromisoformat(data["data_cadastro"])

@@ -43,7 +43,7 @@ class Conversa(BaseModel):
         return data
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Conversa":
+    def from_dict(cls, data: dict[str, Any]) -> Conversa:
         """Cria instância a partir de dicionário, tratando tipos especiais."""
         if "data_inicio" in data and isinstance(data["data_inicio"], str):
             data["data_inicio"] = datetime.fromisoformat(data["data_inicio"])

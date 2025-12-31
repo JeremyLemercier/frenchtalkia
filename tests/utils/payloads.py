@@ -11,7 +11,7 @@ def load_text_webhook_payload() -> dict[str, Any]:
         dict[str, Any]: Payload completo do webhook de texto
     """
     payload_path = Path(__file__).parent / "utils" / "payloads" / "text_message.json"
-    with open(payload_path, "r", encoding="utf-8") as f:
+    with open(payload_path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -23,7 +23,7 @@ def load_audio_webhook_payload() -> dict[str, Any]:
         dict[str, Any]: Payload completo do webhook de áudio
     """
     payload_path = Path(__file__).parent / "utils" / "payloads" / "audio_message.json"
-    with open(payload_path, "r", encoding="utf-8") as f:
+    with open(payload_path, encoding="utf-8") as f:
         return json.load(f)
 
 

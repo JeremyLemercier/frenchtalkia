@@ -4,6 +4,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from app.config import ConfiguracaoApp
 
 
@@ -27,7 +28,7 @@ def mock_httpx_client() -> AsyncMock:
 @pytest.fixture
 def integration_mode() -> bool:
     """Fixture que detecta se está em modo de integração."""
-    return os.getenv("INTEGRATION_TEST_MODE", "false").lower() == "true"
+    return os.getenv("INTEGRATION_WHATSAPP", "false").lower() == "true"
 
 
 @pytest.fixture
@@ -41,7 +42,7 @@ def sample_text_payload() -> dict[str, Any]:
     """Fixture que carrega payload de texto de exemplo."""
     payload_path = Path(__file__).parent / "utils" / "payloads" / "text_message.json"
     import json
-    with open(payload_path, "r", encoding="utf-8") as f:
+    with open(payload_path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -50,7 +51,7 @@ def sample_audio_payload() -> dict[str, Any]:
     """Fixture que carrega payload de áudio de exemplo."""
     payload_path = Path(__file__).parent / "utils" / "payloads" / "audio_message.json"
     import json
-    with open(payload_path, "r", encoding="utf-8") as f:
+    with open(payload_path, encoding="utf-8") as f:
         return json.load(f)
 
 

@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, Response, BackgroundTasks
-from pathlib import Path
-from typing import Any, Optional
 import asyncio
+from pathlib import Path
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, Request, Response
 
 from app.config import get_configuracao
-from app.models import WebhookPayload, TextMessage, AudioMessage
+from app.models import AudioMessage, TextMessage, WebhookPayload
 from app.services.whatsapp_service import WhatsAppService
 from app.utils.logger import logger
 
@@ -92,9 +93,27 @@ async def _salvar_integracao(
     whatsapp_service: WhatsAppService,
     tipo_mensagem: str,
     dados_extraidos: dict[str, Any],
-    arquivo_audio: Optional[Path] = None,
+    arquivo_audio: Path | None = None,
 ) -> None:
     """Salva resultado de integração."""
+    cfg = get_configuracao()
+    if getattr(cfg, "integration_whatsapp", False):
+        try:
+            from tests.integration.whatsapp_webhook import (
+                salvar_resultado_integracao as _salvar_integ,
+            )
+
+            # run sync saving in threadpool
+            result_dir = await asyncio.to_thread(
+                _salvar_integ, tipo_mensagem, dados_extraidos, arquivo_audio
+            )
+            if result_dir:
+                logger.info(f"Resultado de integração salvo em {result_dir}")
+            return
+        except Exception as e:
+            logger.exception(f"Erro ao salvar integração via módulo de testes: {e}")
+
+    # fallback to service method
     result_dir = whatsapp_service.salvar_resultado_integracao(
         tipo_mensagem=tipo_mensagem,
         dados_extraidos=dados_extraidos,
@@ -107,8 +126,23 @@ async def _salvar_integracao(
 async def _baixar_audio_para_integracao(
     whatsapp_service: WhatsAppService,
     media_id: str,
-) -> Optional[Path]:
+) -> Path | None:
     """Baixa áudio para integração."""
+    cfg = get_configuracao()
+    if getattr(cfg, "integration_whatsapp", False):
+        try:
+            from tests.integration.whatsapp_webhook import (
+                baixar_audio_para_integracao as _baixar_integ,
+            )
+
+            arquivo_audio = await _baixar_integ(whatsapp_service, media_id)
+            if arquivo_audio:
+                logger.info(f"Áudio baixado para integração: {arquivo_audio}")
+            return arquivo_audio
+        except Exception as e:
+            logger.exception(f"Erro ao baixar áudio via módulo de testes: {e}")
+            return None
+
     try:
         arquivo_audio = await whatsapp_service.baixar_audio(media_id)
         logger.info(f"Áudio baixado para integração: {arquivo_audio}")
@@ -153,7 +187,7 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
 
         payload = WebhookPayload.model_validate(payload_data)
         mensagem_dict = payload.extrair_mensagem()
-        
+
         if not mensagem_dict:
             logger.warning("Nenhuma mensagem encontrada no payload")
             return {"status": "error", "message": "Nenhuma mensagem encontrada"}
@@ -174,28 +208,65 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
                 telefone = mensagem.get("from")
                 tipo = mensagem.get("type")
 
+                # Load runtime config
+                cfg = get_configuracao()
+
                 if tipo == "text":
-                    # Extract and process text (run sync stubs in threadpool)
-                    dados = _processar_texto(mensagem)
-                    texto_usuario = dados.get("conteudo", "")
-                    # Call LLM service (blocking stub) in thread
-                    resposta = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_usuario)
-                    # Send response
-                    await whatsapp_svc.enviar_mensagem_texto(telefone, resposta)
+                    if getattr(cfg, "integration_whatsapp", False):
+                        # Integration mode: send predefined sample text and save artifacts
+                        try:
+                            from tests.integration.whatsapp_webhook import get_sample_text
+
+                            sample_text = await asyncio.to_thread(get_sample_text)
+                        except Exception:
+                            sample_text = "[integration reply]"
+                        try:
+                            await whatsapp_svc.enviar_mensagem_texto(telefone, sample_text)
+                        except Exception:
+                            logger.exception("Erro ao enviar texto de integração")
+                        # save artifacts
+                        dados = _processar_texto(mensagem)
+                        await _salvar_integracao(whatsapp_svc, "text", dados)
+                    else:
+                        # Extract and process text (run sync stubs in threadpool)
+                        dados = _processar_texto(mensagem)
+                        texto_usuario = dados.get("conteudo", "")
+                        # Call LLM service (blocking stub) in thread
+                        resposta = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_usuario)
+                        # Send response
+                        await whatsapp_svc.enviar_mensagem_texto(telefone, resposta)
 
                 elif tipo == "audio":
-                    dados = _processar_audio(mensagem)
-                    media_id = dados.get("media_id")
-                    # Baixar audio (async, non-blocking file I/O inside service)
-                    arquivo = await whatsapp_svc.baixar_audio(media_id)
-                    # Transcrever (blocking stub) in thread
-                    texto_transcrito = await asyncio.to_thread(gladia_svc.transcrever_audio, arquivo)
-                    # Process via LLM
-                    resposta_texto = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_transcrito)
-                    # Generate TTS (blocking) in thread
-                    caminho_audio, _dur = await asyncio.to_thread(murf_svc.gerar_audio, resposta_texto)
-                    # Send audio response
-                    await whatsapp_svc.enviar_mensagem_audio(telefone, caminho_audio)
+                    if getattr(cfg, "integration_whatsapp", False):
+                        # Integration mode: download original audio, save artifacts, and send sample audio
+                        dados = _processar_audio(mensagem)
+                        media_id = dados.get("media_id")
+                        arquivo = await _baixar_audio_para_integracao(whatsapp_svc, media_id)
+                        try:
+                            from tests.integration.whatsapp_webhook import get_sample_audio_path
+
+                            sample_audio = await asyncio.to_thread(get_sample_audio_path)
+                        except Exception:
+                            sample_audio = Path("tests/utils/audios/sample_audio.ogg")
+                        try:
+                            await whatsapp_svc.enviar_mensagem_audio(telefone, sample_audio)
+                        except Exception:
+                            logger.exception("Erro ao enviar audio de integração")
+                        # save artifacts
+                        await _salvar_integracao(whatsapp_svc, "audio", dados, arquivo)
+                    else:
+                        dados = _processar_audio(mensagem)
+                        media_id = dados.get("media_id")
+                        # Baixar audio (async, non-blocking file I/O inside service)
+                        arquivo = await whatsapp_svc.baixar_audio(media_id)
+                        # Transcrever (blocking stub) in thread
+                        texto_transcrito = await asyncio.to_thread(gladia_svc.transcrever_audio, arquivo)
+                        # Process via LLM
+                        resposta_texto = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_transcrito)
+                        # Generate TTS (blocking) in thread
+                        caminho_audio, _dur = await asyncio.to_thread(murf_svc.gerar_audio, resposta_texto)
+                        # Send audio response
+                        await whatsapp_svc.enviar_mensagem_audio(telefone, caminho_audio)
 
                 else:
                     logger.warning(f"Tipo de mensagem em background não suportado: {tipo}")
@@ -206,28 +277,28 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
         # Processar conforme tipo de mensagem (enqueue background task)
         if mensagem_tipo == "text":
             dados_extraidos = _processar_texto(mensagem_dict)
-            # Save integration artifacts in test mode, still schedule background
-            if config.integration_test_mode:
-                await _salvar_integracao(whatsapp_service, "text", dados_extraidos)
             # schedule background processing and return immediately
             background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))
             return _criar_resposta("received", "Mensagem de texto recebida e agendada", dados_extraidos)
 
         if mensagem_tipo == "audio":
             dados_extraidos = _processar_audio(mensagem_dict)
-            if config.integration_test_mode:
-                # download for integration storage
-                arquivo_audio: Optional[Path] = await _baixar_audio_para_integracao(whatsapp_service, dados_extraidos["media_id"])
-                await _salvar_integracao(whatsapp_service, "audio", dados_extraidos, arquivo_audio)
             # schedule background processing and return immediately
             background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))
             return _criar_resposta("received", "Mensagem de áudio recebida e agendada", dados_extraidos)
-        
+
         # Tipo não suportado
         dados_extraidos = _processar_tipo_desconhecido(mensagem_dict)
         logger.warning(f"Tipo de mensagem não suportado: {dados_extraidos['tipo']}")
-        if config.integration_test_mode:
-            await _salvar_integracao(whatsapp_service, dados_extraidos["tipo"], dados_extraidos)
+        # If integration mode active, schedule artifact save in background (keep request fast)
+        if config.integration_whatsapp:
+            async def _save_unknown():
+                try:
+                    await _salvar_integracao(whatsapp_service, dados_extraidos["tipo"], dados_extraidos)
+                except Exception:
+                    logger.exception("Erro ao salvar integração para tipo desconhecido")
+
+            background_tasks.add_task(asyncio.create_task, _save_unknown())
         return _criar_resposta("received", f"Tipo de mensagem não suportado: {dados_extraidos['tipo']}", dados_extraidos)
 
     except Exception as e:

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -17,7 +17,7 @@ class WebhookMessage(BaseModel):
 class TextMessage(WebhookMessage):
     """Modelo para mensagens de texto do webhook WhatsApp."""
 
-    text: Dict[str, str] = Field(..., description="Conteúdo da mensagem de texto")
+    text: dict[str, str] = Field(..., description="Conteúdo da mensagem de texto")
 
     @property
     def body(self) -> str:
@@ -28,7 +28,7 @@ class TextMessage(WebhookMessage):
 class AudioMessage(WebhookMessage):
     """Modelo para mensagens de áudio do webhook WhatsApp."""
 
-    audio: Dict[str, str] = Field(..., description="Informações do áudio")
+    audio: dict[str, str] = Field(..., description="Informações do áudio")
 
     @property
     def audio_id(self) -> str:
@@ -49,7 +49,7 @@ class AudioMessage(WebhookMessage):
 class WebhookContact(BaseModel):
     """Modelo para informações de contato do webhook WhatsApp."""
 
-    profile: Dict[str, str] = Field(..., description="Informações do perfil")
+    profile: dict[str, str] = Field(..., description="Informações do perfil")
     wa_id: str = Field(..., description="ID do WhatsApp")
 
     @property
@@ -70,8 +70,8 @@ class WebhookValue(BaseModel):
 
     messaging_product: str = Field(..., description="Produto de mensageria")
     metadata: WebhookMetadata = Field(..., description="Metadados")
-    contacts: List[WebhookContact] = Field(default_factory=list, description="Contatos")
-    messages: List[Dict[str, Any]] = Field(default_factory=list, description="Mensagens")
+    contacts: list[WebhookContact] = Field(default_factory=list, description="Contatos")
+    messages: list[dict[str, Any]] = Field(default_factory=list, description="Mensagens")
 
 
 class WebhookChange(BaseModel):
@@ -85,16 +85,16 @@ class WebhookEntry(BaseModel):
     """Modelo para entradas do webhook WhatsApp."""
 
     id: str = Field(..., description="ID da entrada")
-    changes: List[WebhookChange] = Field(..., description="Lista de mudanças")
+    changes: list[WebhookChange] = Field(..., description="Lista de mudanças")
 
 
 class WebhookPayload(BaseModel):
     """Modelo raiz do webhook WhatsApp."""
 
     object: str = Field(..., description="Objeto do webhook")
-    entry: List[WebhookEntry] = Field(..., description="Lista de entradas")
+    entry: list[WebhookEntry] = Field(..., description="Lista de entradas")
 
-    def extrair_mensagem(self) -> Dict[str, Any] | None:
+    def extrair_mensagem(self) -> dict[str, Any] | None:
         """
         Extrai a primeira mensagem do payload.
 

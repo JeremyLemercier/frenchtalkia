@@ -85,6 +85,19 @@ async def startup_event():
 async def shutdown_event():
     """Evento de encerramento da aplicação."""
     logger.info("Encerrando aplicação FrenchTalkIA...")
+    try:
+        # If application `app` is available in globals, attempt to close whatsapp client's httpx session
+        app_obj = globals().get("app")
+        if app_obj is not None and hasattr(app_obj, "state"):
+            whatsapp_svc = getattr(app_obj.state, "whatsapp_service", None)
+            if whatsapp_svc is not None:
+                try:
+                    await whatsapp_svc.close()
+                    logger.info("WhatsAppService HTTP client fechado com sucesso")
+                except Exception as e:
+                    logger.exception(f"Erro ao fechar WhatsAppService: {e}")
+    except Exception:
+        logger.exception("Erro durante shutdown_event")
 
 
 # Criar aplicação FastAPI com gerenciamento de ciclo de vida

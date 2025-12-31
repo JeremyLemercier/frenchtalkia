@@ -10,7 +10,6 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 
 class LoggerWrapper:
@@ -24,10 +23,10 @@ class LoggerWrapper:
     - Consistent formatting across all handlers
     """
 
-    _instance: Optional["LoggerWrapper"] = None
-    _logger: Optional[logging.Logger] = None
+    _instance: LoggerWrapper | None = None
+    _logger: logging.Logger | None = None
 
-    def __new__(cls) -> "LoggerWrapper":
+    def __new__(cls) -> LoggerWrapper:
         """Singleton pattern implementation."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)

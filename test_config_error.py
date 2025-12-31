@@ -1,7 +1,6 @@
 """Test script to verify the fix for missing .env or empty required variables."""
 
 import os
-import sys
 
 # Temporarily rename .env to simulate missing file
 env_backup = None

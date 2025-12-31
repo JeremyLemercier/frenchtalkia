@@ -1,12 +1,8 @@
-import hashlib
-import json
-import shutil
-import time
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional
-import random
 import asyncio
+import random
+import time
+from pathlib import Path
+from typing import Any
 
 import aiofiles
 import httpx
@@ -149,7 +145,7 @@ class WhatsAppService:
             async with aiofiles.open(caminho_audio, "rb") as f:
                 audio_bytes = await f.read()
 
-            files: Dict[str, Any] = {
+            files: dict[str, Any] = {
                 "file": (caminho_audio.name, audio_bytes, "audio/ogg; codecs=opus"),
                 "type": (None, "audio/ogg; codecs=opus"),
                 "messaging_product": (None, "whatsapp"),
@@ -210,7 +206,7 @@ class WhatsAppService:
                 "Content-Type": "application/json",
             }
 
-            payload: Dict[str, Any] = {
+            payload: dict[str, Any] = {
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": telefone,
@@ -278,7 +274,7 @@ class WhatsAppService:
                 "Content-Type": "application/json",
             }
 
-            payload: Dict[str, Any] = {
+            payload: dict[str, Any] = {
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
                 "to": telefone,
@@ -313,9 +309,9 @@ class WhatsAppService:
     def salvar_resultado_integracao(
         self,
         tipo_mensagem: str,
-        dados_extraidos: Dict[str, Any],
-        arquivo_audio: Optional[Path] = None,
-    ) -> Optional[Path]:
+        dados_extraidos: dict[str, Any],
+        arquivo_audio: Path | None = None,
+    ) -> Path | None:
         """
         Salva resultado de integração para análise manual.
 
@@ -327,58 +323,19 @@ class WhatsAppService:
         Returns:
             Optional[Path]: Caminho do diretório de resultados ou None se modo desativado
         """
-        if not self.config.integration_test_mode:
+        # Delegate to isolated integration helpers when integration_whatsapp is active
+        if not getattr(self.config, "integration_whatsapp", False):
             return None
 
         try:
-            # Criar diretório base de resultados
-            results_dir = Path("tests/integration/results")
-            results_dir.mkdir(parents=True, exist_ok=True)
+            # import the integration helpers lazily to avoid test-only dependencies at module import
+            from tests.integration.whatsapp_webhook import (
+                salvar_resultado_integracao as _salvar_integ,
+            )
 
-            # Criar subdiretório com timestamp
-            timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            result_subdir = results_dir / timestamp_str
-            result_subdir.mkdir(parents=True, exist_ok=True)
-
-            # Salvar dados extraídos
-            extracted_data_path = result_subdir / "extracted_data.json"
-            with open(extracted_data_path, "w", encoding="utf-8") as f:
-                json.dump(dados_extraidos, f, indent=2, ensure_ascii=False)
-
-            # Preparar metadata
-            metadata: Dict[str, Any] = {
-                "timestamp_recebimento": datetime.now().isoformat(),
-                "tipo_mensagem": tipo_mensagem,
-                "telefone": dados_extraidos.get("telefone"),
-            }
-
-            # Se áudio: copiar arquivo e calcular hash
-            if arquivo_audio and arquivo_audio.exists():
-                audio_dest = result_subdir / "audio_received.ogg"
-                shutil.copy2(arquivo_audio, audio_dest)
-
-                # Calcular hash SHA256
-                with open(audio_dest, "rb") as f:
-                    audio_bytes = f.read()
-                    sha256_hash = hashlib.sha256(audio_bytes).hexdigest()
-
-                # Adicionar informações do áudio ao metadata
-                metadata.update({
-                    "tamanho_bytes": len(audio_bytes),
-                    "sha256": sha256_hash,
-                    "mime_type": dados_extraidos.get("mime_type", "audio/ogg; codecs=opus"),
-                })
-
-            # Salvar metadata
-            metadata_path = result_subdir / "metadata.json"
-            with open(metadata_path, "w", encoding="utf-8") as f:
-                json.dump(metadata, f, indent=2, ensure_ascii=False)
-
-            logger.info(f"Resultado de integração salvo em {result_subdir}")
-            return result_subdir
-
+            return _salvar_integ(tipo_mensagem, dados_extraidos, arquivo_audio)
         except Exception as e:
-            logger.exception(f"Erro ao salvar resultado de integração: {str(e)}")
+            logger.exception(f"Erro ao delegar salvar_resultado_integracao: {e}")
             return None
 
     async def close(self) -> None:
@@ -398,10 +355,10 @@ class WhatsAppService:
         self,
         method: str,
         url: str,
-        headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, Any]] = None,
-        json: Optional[Any] = None,
-        files: Optional[Dict[str, Any]] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+        json: Any | None = None,
+        files: dict[str, Any] | None = None,
         max_retries: int = 3,
     ) -> httpx.Response:
         """
