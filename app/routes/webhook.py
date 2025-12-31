@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, BackgroundTasks
 from pathlib import Path
 from typing import Any, Optional
+import asyncio
 
 from app.config import get_configuracao
 from app.models import WebhookPayload, TextMessage, AudioMessage
@@ -131,7 +132,7 @@ def _criar_resposta(
 
 
 @router.post("/whatsapp")
-async def webhook_receive(request: Request) -> dict[str, Any]:
+async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -> dict[str, Any]:
     """
     Endpoint para receber mensagens do webhook do WhatsApp.
 
@@ -141,14 +142,12 @@ async def webhook_receive(request: Request) -> dict[str, Any]:
     Returns:
         dict: Confirmação de recebimento com dados processados
     """
-    whatsapp_service: Optional[WhatsAppService] = None
-    
     try:
         config = get_configuracao()
-        
-        # Inicializar serviço WhatsApp (usado tanto para modo normal quanto integração)
-        whatsapp_service = WhatsAppService(config)
-        
+
+        # Reuse shared service instance created at startup
+        whatsapp_service: WhatsAppService = request.app.state.whatsapp_service
+
         payload_data = await request.json()
         logger.debug(f"Payload recebido: {payload_data}")
 
@@ -164,21 +163,65 @@ async def webhook_receive(request: Request) -> dict[str, Any]:
             f"Mensagem recebida - Tipo: {mensagem_tipo}, "
             f"Telefone: {mensagem_dict.get('from')}, ID: {mensagem_dict.get('id')}"
         )
+        # Schedule heavy processing in background to return immediately
+        async def _process_message_bg(mensagem: dict[str, Any]):
+            try:
+                whatsapp_svc: WhatsAppService = request.app.state.whatsapp_service
+                gladia_svc = request.app.state.gladia_service
+                mistral_svc = request.app.state.mistral_service
+                murf_svc = request.app.state.murf_service
 
-        # Processar conforme tipo de mensagem
+                telefone = mensagem.get("from")
+                tipo = mensagem.get("type")
+
+                if tipo == "text":
+                    # Extract and process text (run sync stubs in threadpool)
+                    dados = _processar_texto(mensagem)
+                    texto_usuario = dados.get("conteudo", "")
+                    # Call LLM service (blocking stub) in thread
+                    resposta = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_usuario)
+                    # Send response
+                    await whatsapp_svc.enviar_mensagem_texto(telefone, resposta)
+
+                elif tipo == "audio":
+                    dados = _processar_audio(mensagem)
+                    media_id = dados.get("media_id")
+                    # Baixar audio (async, non-blocking file I/O inside service)
+                    arquivo = await whatsapp_svc.baixar_audio(media_id)
+                    # Transcrever (blocking stub) in thread
+                    texto_transcrito = await asyncio.to_thread(gladia_svc.transcrever_audio, arquivo)
+                    # Process via LLM
+                    resposta_texto = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_transcrito)
+                    # Generate TTS (blocking) in thread
+                    caminho_audio, _dur = await asyncio.to_thread(murf_svc.gerar_audio, resposta_texto)
+                    # Send audio response
+                    await whatsapp_svc.enviar_mensagem_audio(telefone, caminho_audio)
+
+                else:
+                    logger.warning(f"Tipo de mensagem em background não suportado: {tipo}")
+
+            except Exception as e:
+                logger.exception(f"Erro no processamento em background: {str(e)}")
+
+        # Processar conforme tipo de mensagem (enqueue background task)
         if mensagem_tipo == "text":
             dados_extraidos = _processar_texto(mensagem_dict)
+            # Save integration artifacts in test mode, still schedule background
             if config.integration_test_mode:
                 await _salvar_integracao(whatsapp_service, "text", dados_extraidos)
-            return _criar_resposta("received", "Mensagem de texto recebida com sucesso", dados_extraidos)
-        
+            # schedule background processing and return immediately
+            background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))
+            return _criar_resposta("received", "Mensagem de texto recebida e agendada", dados_extraidos)
+
         if mensagem_tipo == "audio":
             dados_extraidos = _processar_audio(mensagem_dict)
-            arquivo_audio: Optional[Path] = None
             if config.integration_test_mode:
-                arquivo_audio = await _baixar_audio_para_integracao(whatsapp_service, dados_extraidos["media_id"])
+                # download for integration storage
+                arquivo_audio: Optional[Path] = await _baixar_audio_para_integracao(whatsapp_service, dados_extraidos["media_id"])
                 await _salvar_integracao(whatsapp_service, "audio", dados_extraidos, arquivo_audio)
-            return _criar_resposta("received", "Mensagem de áudio recebida com sucesso", dados_extraidos)
+            # schedule background processing and return immediately
+            background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))
+            return _criar_resposta("received", "Mensagem de áudio recebida e agendada", dados_extraidos)
         
         # Tipo não suportado
         dados_extraidos = _processar_tipo_desconhecido(mensagem_dict)
@@ -190,12 +233,6 @@ async def webhook_receive(request: Request) -> dict[str, Any]:
     except Exception as e:
         logger.error(f"Erro ao processar webhook: {str(e)}")
         return {"status": "error", "message": "Erro ao processar webhook"}
-    finally:
-        if whatsapp_service:
-            try:
-                await whatsapp_service.close()
-            except Exception as e:
-                logger.error(f"Erro ao fechar serviço WhatsApp: {str(e)}")
 
 
 @router.get("/health")

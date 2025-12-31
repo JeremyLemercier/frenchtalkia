@@ -5,7 +5,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
+import random
+import asyncio
 
+import aiofiles
 import httpx
 
 from app.config import ConfiguracaoApp
@@ -50,7 +53,7 @@ class WhatsAppService:
 
             logger.debug(f"Obtendo URL para media_id: {media_id}")
 
-            response = await self.httpx_client.get(url, params=params, headers=headers)
+            response = await self._request_with_retry("get", url, headers=headers, params=params)
 
             if response.status_code == 401:
                 msg_erro = "Token de acesso inválido"
@@ -95,31 +98,26 @@ class WhatsAppService:
             ValueError: Se ocorrer erro no download ou salvamento
         """
         try:
-            # Obter URL temporária
             media_url = await self.obter_url_media(media_id)
 
             # Criar diretório temporário se não existir
             temp_dir = self.config.diretorio_temp_audio
             temp_dir.mkdir(parents=True, exist_ok=True)
 
-            # Gerar nome do arquivo
+            # Gerar nome do arquivo (WhatsApp audio messages are expected to be .ogg)
             timestamp = int(time.time())
             filename = f"audio_{media_id}_{timestamp}.ogg"
             filepath = temp_dir / filename
 
             logger.debug(f"Baixando áudio {media_id} para {filepath}")
 
-            # Fazer download do arquivo
+            # Fazer download do arquivo com retry
             headers = {"Authorization": f"Bearer {self.access_token}"}
-            response = await self.httpx_client.get(media_url, headers=headers)
+            response = await self._request_with_retry("get", media_url, headers=headers)
 
-            if response.status_code != 200:
-                msg_erro = f"Erro ao baixar áudio: {response.status_code}"
-                logger.error(msg_erro)
-                raise ValueError(msg_erro)
-
-            # Salvar arquivo
-            filepath.write_bytes(response.content)
+            # Salvar arquivo de forma não-bloqueante
+            async with aiofiles.open(filepath, "wb") as f:
+                await f.write(response.content)
 
             logger.info(f"Áudio baixado com sucesso: {filepath}")
             return filepath
@@ -147,15 +145,17 @@ class WhatsAppService:
 
             logger.debug(f"Fazendo upload do áudio: {caminho_audio}")
 
-            # Ler arquivo binário
-            with open(caminho_audio, "rb") as audio_file:
-                files: Dict[str, Any] = {
-                    "file": (caminho_audio.name, audio_file, "audio/ogg; codecs=opus"),
-                    "type": (None, "audio/ogg; codecs=opus"),
-                    "messaging_product": (None, "whatsapp"),
-                }
+            # Ler arquivo binário de forma não-bloqueante
+            async with aiofiles.open(caminho_audio, "rb") as f:
+                audio_bytes = await f.read()
 
-                response = await self.httpx_client.post(url, headers=headers, files=files)
+            files: Dict[str, Any] = {
+                "file": (caminho_audio.name, audio_bytes, "audio/ogg; codecs=opus"),
+                "type": (None, "audio/ogg; codecs=opus"),
+                "messaging_product": (None, "whatsapp"),
+            }
+
+            response = await self._request_with_retry("post", url, headers=headers, files=files)
 
             if response.status_code == 400:
                 msg_erro = "Formato de áudio inválido"
@@ -220,7 +220,7 @@ class WhatsAppService:
 
             logger.debug(f"Enviando mensagem de texto para {telefone}: {texto[:50]}...")
 
-            response = await self.httpx_client.post(url, headers=headers, json=payload)
+            response = await self._request_with_retry("post", url, headers=headers, json=payload)
 
             if response.status_code == 400:
                 msg_erro = "Número de telefone inválido"
@@ -288,7 +288,7 @@ class WhatsAppService:
 
             logger.debug(f"Enviando mensagem de áudio para {telefone} (media_id: {media_id})")
 
-            response = await self.httpx_client.post(url, headers=headers, json=payload)
+            response = await self._request_with_retry("post", url, headers=headers, json=payload)
 
             if response.status_code != 200:
                 msg_erro = f"Erro no envio do áudio: {response.status_code}"
@@ -393,6 +393,51 @@ class WhatsAppService:
         except Exception as e:
             logger.exception(f"Erro ao fechar cliente HTTP: {str(e)}")
             raise
+
+    async def _request_with_retry(
+        self,
+        method: str,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        params: Optional[Dict[str, Any]] = None,
+        json: Optional[Any] = None,
+        files: Optional[Dict[str, Any]] = None,
+        max_retries: int = 3,
+    ) -> httpx.Response:
+        """
+        Faz requests com retry exponencial simples para lidar com 429/5xx.
+        """
+        backoff_base = 1.0
+        for attempt in range(1, max_retries + 1):
+            try:
+                if method.lower() == "get":
+                    resp = await self.httpx_client.get(url, headers=headers, params=params)
+                elif method.lower() == "post":
+                    resp = await self.httpx_client.post(url, headers=headers, params=params, json=json, files=files)
+                else:
+                    resp = await self.httpx_client.request(method, url, headers=headers, params=params, json=json, files=files)
+
+                # Retry on rate limit or server errors
+                if resp.status_code == 429 or resp.status_code >= 500:
+                    if attempt == max_retries:
+                        return resp
+                    sleep_time = backoff_base * (2 ** (attempt - 1))
+                    # add jitter
+                    sleep_time = sleep_time + random.uniform(0, 0.1 * sleep_time)
+                    logger.warning(f"Request to {url} returned {resp.status_code}, retrying in {sleep_time:.2f}s (attempt {attempt})")
+                    await asyncio.sleep(sleep_time)
+                    continue
+
+                return resp
+
+            except httpx.RequestError as e:
+                if attempt == max_retries:
+                    logger.exception(f"Request error to {url}: {str(e)}")
+                    raise
+                sleep_time = backoff_base * (2 ** (attempt - 1)) + random.uniform(0, 0.1)
+                logger.warning(f"Request error to {url}: {str(e)} - retrying in {sleep_time:.2f}s (attempt {attempt})")
+                await asyncio.sleep(sleep_time)
+                continue
 
     # Métodos legados mantidos para compatibilidade
     def verificar_webhook(self, verify_token: str) -> bool:
