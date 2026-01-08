@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from pydantic.config import ConfigDict
 
 
@@ -30,11 +30,12 @@ class Sessao(BaseModel):
     )
 
     model_config = ConfigDict(
-        json_encoders={
-            datetime: lambda v: v.isoformat(),
-        },
         use_enum_values=True,
     )
+
+    @field_serializer("ultima_interacao")
+    def _serialize_ultima_interacao(self, v: datetime, _info):
+        return v.isoformat()
 
     def to_dict(self) -> dict[str, Any]:
         """Converte o modelo para dicionário, tratando tipos especiais."""

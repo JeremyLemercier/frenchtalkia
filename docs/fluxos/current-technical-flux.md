@@ -147,5 +147,14 @@
 - Logger singleton : `app/utils/logger.py`
 
 ---
-Document rédigé automatiquement à partir de l'analyse de code source (Décembre 2025). Pour modifications, réponds quelle section tu veux étendre ou si tu veux que j'ajoute un diagramme d'appel.
+Document rédigé automatiquement à partir de l'analyse de code source (1 Janvier 2026).
+
+**Mises à jour récentes**
+- `WhatsAppService` now uses non-blocking file I/O via `aiofiles` for audio download/upload to avoid blocking the event loop.
+- All HTTP calls to WhatsApp API are wrapped by a retry helper (`_request_with_retry`) implementing exponential backoff with jitter for 429 and 5xx responses.
+- The webhook endpoint reuses the shared `WhatsAppService` instance stored in `app.state` (created at startup) instead of creating/closing per-request.
+- Heavy processing (STT, LLM, TTS) is scheduled via `FastAPI BackgroundTasks` and runs asynchronously; the webhook returns immediately with a small JSON ack so WhatsApp webhooks are not delayed.
+- Synchronous/stubbed services (`GladiaService`, `MistralService`, `MurfService`) are executed in a threadpool via `asyncio.to_thread(...)` inside background tasks to avoid blocking the event loop.
+
+
 

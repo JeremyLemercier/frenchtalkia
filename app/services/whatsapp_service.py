@@ -111,9 +111,16 @@ class WhatsAppService:
             headers = {"Authorization": f"Bearer {self.access_token}"}
             response = await self._request_with_retry("get", media_url, headers=headers)
 
+            # Verificar status antes de tentar salvar o conteúdo
+            if response.status_code != 200:
+                msg_erro = f"Erro ao baixar áudio: {response.status_code}"
+                logger.error(msg_erro)
+                raise ValueError(msg_erro)
+
             # Salvar arquivo de forma não-bloqueante
+            content = response.content
             async with aiofiles.open(filepath, "wb") as f:
-                await f.write(response.content)
+                await f.write(content)
 
             logger.info(f"Áudio baixado com sucesso: {filepath}")
             return filepath
@@ -367,12 +374,25 @@ class WhatsAppService:
         backoff_base = 1.0
         for attempt in range(1, max_retries + 1):
             try:
+                # Build kwargs only with values that are not None so we don't
+                # pass explicit None values (e.g. params=None) which breaks
+                # strict assertion checks in tests/mocks.
+                request_kwargs: dict[str, Any] = {}
+                if headers is not None:
+                    request_kwargs["headers"] = headers
+                if params is not None:
+                    request_kwargs["params"] = params
+                if json is not None:
+                    request_kwargs["json"] = json
+                if files is not None:
+                    request_kwargs["files"] = files
+
                 if method.lower() == "get":
-                    resp = await self.httpx_client.get(url, headers=headers, params=params)
+                    resp = await self.httpx_client.get(url, **request_kwargs)
                 elif method.lower() == "post":
-                    resp = await self.httpx_client.post(url, headers=headers, params=params, json=json, files=files)
+                    resp = await self.httpx_client.post(url, **request_kwargs)
                 else:
-                    resp = await self.httpx_client.request(method, url, headers=headers, params=params, json=json, files=files)
+                    resp = await self.httpx_client.request(method, url, **request_kwargs)
 
                 # Retry on rate limit or server errors
                 if resp.status_code == 429 or resp.status_code >= 500:
@@ -395,7 +415,12 @@ class WhatsAppService:
                 logger.warning(f"Request error to {url}: {str(e)} - retrying in {sleep_time:.2f}s (attempt {attempt})")
                 await asyncio.sleep(sleep_time)
                 continue
-
+        # This point should be unreachable because the loop either returns a
+        # `httpx.Response` or raises an exception. Add an explicit raise so
+        # type-checkers (Pylance) know the function doesn't implicitly return
+        # `None` on any code path.
+        raise RuntimeError(f"Falha ao obter resposta de {url} após {max_retries} tentativas")
+    
     # Métodos legados mantidos para compatibilidade
     def verificar_webhook(self, verify_token: str) -> bool:
         """

@@ -24,13 +24,13 @@ APP_DESCRIPTION = "API para robô de aprendizado de francês via WhatsApp"
 async def lifespan(app: FastAPI):
     """Gerencia o ciclo de vida da aplicação."""
     # Startup
-    await startup_event()
+    startup_event()
     yield
     # Shutdown (se necessário)
     await shutdown_event()
 
 
-async def startup_event():
+def startup_event():
     """Evento de inicialização da aplicação."""
     # Validar que a configuração foi carregada com sucesso
     if configuracao is None:

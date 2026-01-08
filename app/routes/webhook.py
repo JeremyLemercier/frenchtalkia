@@ -123,6 +123,14 @@ async def _salvar_integracao(
         logger.info(f"Resultado de integração salvo em {result_dir}")
 
 
+def _schedule_create_task(coro):
+    """Helper to schedule coroutine tasks. Tests may monkeypatch this to run
+    coroutines on a background loop when BackgroundTasks executes callables
+    in a threadpool.
+    """
+    return asyncio.create_task(coro)
+
+
 async def _baixar_audio_para_integracao(
     whatsapp_service: WhatsAppService,
     media_id: str,
@@ -179,8 +187,8 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
     try:
         config = get_configuracao()
 
-        # Reuse shared service instance created at startup
-        whatsapp_service: WhatsAppService = request.app.state.whatsapp_service
+        # Reuse shared service instance created at startup when available
+        whatsapp_service: WhatsAppService | None = getattr(request.app.state, "whatsapp_service", None)
 
         payload_data = await request.json()
         logger.debug(f"Payload recebido: {payload_data}")
@@ -200,13 +208,21 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
         # Schedule heavy processing in background to return immediately
         async def _process_message_bg(mensagem: dict[str, Any]):
             try:
-                whatsapp_svc: WhatsAppService = request.app.state.whatsapp_service
-                gladia_svc = request.app.state.gladia_service
-                mistral_svc = request.app.state.mistral_service
-                murf_svc = request.app.state.murf_service
+                whatsapp_svc: WhatsAppService | None = getattr(request.app.state, "whatsapp_service", None)
+                gladia_svc = getattr(request.app.state, "gladia_service", None)
+                mistral_svc = getattr(request.app.state, "mistral_service", None)
+                murf_svc = getattr(request.app.state, "murf_service", None)
+                usuario_svc = getattr(request.app.state, "usuario_service", None)
 
                 telefone = mensagem.get("from")
                 tipo = mensagem.get("type")
+
+                # Ensure we have a per-user session and lock processing per-user
+                if usuario_svc is not None and telefone:
+                    try:
+                        usuario_svc.bloquear_usuario(telefone)
+                    except Exception:
+                        logger.exception(f"Falha ao bloquear usuário {telefone} para processamento")
 
                 # Load runtime config
                 cfg = get_configuracao()
@@ -221,7 +237,10 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
                         except Exception:
                             sample_text = "[integration reply]"
                         try:
-                            await whatsapp_svc.enviar_mensagem_texto(telefone, sample_text)
+                            if whatsapp_svc is not None:
+                                await whatsapp_svc.enviar_mensagem_texto(telefone, sample_text)
+                            else:
+                                logger.warning("WhatsAppService não disponível no estado da app (modo integração)")
                         except Exception:
                             logger.exception("Erro ao enviar texto de integração")
                         # save artifacts
@@ -232,9 +251,57 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
                         dados = _processar_texto(mensagem)
                         texto_usuario = dados.get("conteudo", "")
                         # Call LLM service (blocking stub) in thread
-                        resposta = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_usuario)
-                        # Send response
-                        await whatsapp_svc.enviar_mensagem_texto(telefone, resposta)
+                        # Use per-user conversation_id stored in session to avoid mixing
+                        conversation_id = None
+                        agent_id = None
+                        if usuario_svc is not None and telefone:
+                            try:
+                                sess = usuario_svc.obter_sessao_usuario(telefone)
+                                conversation_id = sess.conversation_id_mistral
+                                agent_id = sess.agent_id_mistral
+                            except Exception:
+                                logger.exception(f"Erro ao obter sessão para {telefone}")
+
+                        # Choose a default agent if not present
+                        if agent_id is None:
+                            agent_id = "agent_fr_basic"
+
+                        if mistral_svc is not None:
+                            # If there's no conversation yet, start one and persist its id
+                            if not conversation_id:
+                                try:
+                                    conv_id, primeira_resposta = await asyncio.to_thread(
+                                        mistral_svc.iniciar_conversa, agent_id, texto_usuario
+                                    )
+                                    conversation_id = conv_id
+                                    # Persist conversation id in session
+                                    try:
+                                        # sessao_storage is available via usuario_service
+                                        usuario_svc.sessao_storage.atualizar_selecoes(
+                                            telefone, agent_id_mistral=agent_id, conversation_id_mistral=conversation_id
+                                        )
+                                    except Exception:
+                                        logger.exception(f"Não foi possível salvar conversation_id para {telefone}")
+                                    resposta = primeira_resposta
+                                except Exception:
+                                    logger.exception("Erro ao iniciar conversa no Mistral")
+                                    resposta = ""
+                            else:
+                                try:
+                                    resposta = await asyncio.to_thread(
+                                        mistral_svc.continuar_conversa, conversation_id, texto_usuario
+                                    )
+                                except Exception:
+                                    logger.exception("Erro ao continuar conversa no Mistral")
+                                    resposta = ""
+                        else:
+                            resposta = ""
+                            logger.warning("MistralService não disponível no estado da app")
+                        # Send response (se disponível)
+                        if whatsapp_svc is not None:
+                            await whatsapp_svc.enviar_mensagem_texto(telefone, resposta)
+                        else:
+                            logger.warning("WhatsAppService não disponível no estado da app")
 
                 elif tipo == "audio":
                     if getattr(cfg, "integration_whatsapp", False):
@@ -249,7 +316,10 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
                         except Exception:
                             sample_audio = Path("tests/utils/audios/sample_audio.ogg")
                         try:
-                            await whatsapp_svc.enviar_mensagem_audio(telefone, sample_audio)
+                            if whatsapp_svc is not None:
+                                await whatsapp_svc.enviar_mensagem_audio(telefone, sample_audio)
+                            else:
+                                logger.warning("WhatsAppService não disponível no estado da app (modo integração)")
                         except Exception:
                             logger.exception("Erro ao enviar audio de integração")
                         # save artifacts
@@ -258,33 +328,63 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
                         dados = _processar_audio(mensagem)
                         media_id = dados.get("media_id")
                         # Baixar audio (async, non-blocking file I/O inside service)
-                        arquivo = await whatsapp_svc.baixar_audio(media_id)
+                        if whatsapp_svc is not None:
+                            arquivo = await whatsapp_svc.baixar_audio(media_id)
+                        else:
+                            arquivo = None
+                            logger.warning("WhatsAppService não disponível para baixar áudio")
+
                         # Transcrever (blocking stub) in thread
-                        texto_transcrito = await asyncio.to_thread(gladia_svc.transcrever_audio, arquivo)
+                        if gladia_svc is not None and arquivo is not None:
+                            texto_transcrito = await asyncio.to_thread(gladia_svc.transcrever_audio, arquivo)
+                        else:
+                            texto_transcrito = ""
+                            logger.warning("GladiaService não disponível ou arquivo ausente")
+
                         # Process via LLM
-                        resposta_texto = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_transcrito)
+                        if mistral_svc is not None:
+                            resposta_texto = await asyncio.to_thread(mistral_svc.continuar_conversa, "default", texto_transcrito)
+                        else:
+                            resposta_texto = ""
+                            logger.warning("MistralService não disponível no estado da app")
+
                         # Generate TTS (blocking) in thread
-                        caminho_audio, _dur = await asyncio.to_thread(murf_svc.gerar_audio, resposta_texto)
+                        if murf_svc is not None:
+                            caminho_audio, _dur = await asyncio.to_thread(murf_svc.gerar_audio, resposta_texto)
+                        else:
+                            caminho_audio = None
+                            logger.warning("MurfService não disponível no estado da app")
+
                         # Send audio response
-                        await whatsapp_svc.enviar_mensagem_audio(telefone, caminho_audio)
+                        if whatsapp_svc is not None and caminho_audio is not None:
+                            await whatsapp_svc.enviar_mensagem_audio(telefone, caminho_audio)
+                        else:
+                            logger.warning("Não foi possível enviar resposta de áudio: serviço ou áudio ausente")
 
                 else:
                     logger.warning(f"Tipo de mensagem em background não suportado: {tipo}")
 
             except Exception as e:
                 logger.exception(f"Erro no processamento em background: {str(e)}")
+            finally:
+                # Always release per-user processing lock
+                try:
+                    if usuario_svc is not None and telefone:
+                        usuario_svc.desbloquear_usuario(telefone)
+                except Exception:
+                    logger.exception(f"Falha ao desbloquear usuário {telefone}")
 
         # Processar conforme tipo de mensagem (enqueue background task)
         if mensagem_tipo == "text":
             dados_extraidos = _processar_texto(mensagem_dict)
             # schedule background processing and return immediately
-            background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))
+            background_tasks.add_task(_schedule_create_task, _process_message_bg(mensagem_dict))
             return _criar_resposta("received", "Mensagem de texto recebida e agendada", dados_extraidos)
 
         if mensagem_tipo == "audio":
             dados_extraidos = _processar_audio(mensagem_dict)
             # schedule background processing and return immediately
-            background_tasks.add_task(asyncio.create_task, _process_message_bg(mensagem_dict))
+            background_tasks.add_task(_schedule_create_task, _process_message_bg(mensagem_dict))
             return _criar_resposta("received", "Mensagem de áudio recebida e agendada", dados_extraidos)
 
         # Tipo não suportado
@@ -298,7 +398,7 @@ async def webhook_receive(request: Request, background_tasks: BackgroundTasks) -
                 except Exception:
                     logger.exception("Erro ao salvar integração para tipo desconhecido")
 
-            background_tasks.add_task(asyncio.create_task, _save_unknown())
+            background_tasks.add_task(_schedule_create_task, _save_unknown())
         return _criar_resposta("received", f"Tipo de mensagem não suportado: {dados_extraidos['tipo']}", dados_extraidos)
 
     except Exception as e:

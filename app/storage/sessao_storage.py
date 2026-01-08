@@ -132,6 +132,5 @@ class SessaoStorage(BaseStorage[Sessao]):
                 sessao.agent_id_mistral = agent_id_mistral
             if conversation_id_mistral is not None:
                 sessao.conversation_id_mistral = conversation_id_mistral
-
             sessao.ultima_interacao = datetime.now()  # Atualiza timestamp
             self.salvar(id_usuario, sessao)

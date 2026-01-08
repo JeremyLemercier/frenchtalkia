@@ -1,6 +1,13 @@
 # Working with UV
 https://docs.astral.sh/uv/getting-started/
 
+# Install dependencies
+uv pip install -r pyproject.toml
+uv pip install -e ".[dev]"
+
+# Run tests
+pytest ./tests/unit/test_*.py -v
+
 ## WhatsApp webhook background processing
 
 - This project processes incoming WhatsApp messages asynchronously using FastAPI `BackgroundTasks`.

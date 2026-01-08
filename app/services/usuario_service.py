@@ -165,22 +165,70 @@ class UsuarioService:
         """
         return self.usuario_storage.obter_por_telefone(telefone)
 
-    def bloquear_usuario(self, id_usuario: str) -> None:
+    def iniciar_processamento(self, id_usuario: str) -> str:
         """
-        Bloqueia usuário para processamento (thread-safety).
+        Inicia o processamento para um usuário: marca que o usuário está em processamento.
 
         Args:
-            id_usuario: ID do usuário
+            id_usuario: ID do usuário (telefone)
+
+        Returns:
+            str: id_usuario
         """
+
+        # Garantir que o usuário/sessão existem
+        _ = self.obter_ou_criar_usuario(id_usuario)
+
+        # Marcar flag de processamento no usuário (para compatibilidade)
         self.usuario_storage.atualizar_flag_processing(id_usuario, True)
 
-    def desbloquear_usuario(self, id_usuario: str) -> None:
+        # Colocar estado EM_CONVERSA
+        try:
+            self.sessao_storage.atualizar_estado(id_usuario, EstadoSessao.EM_CONVERSA)
+        except Exception:
+            # se não houver sessão criada, criaremos uma
+            self.sessao_storage.criar_sessao_nova(id_usuario, EstadoSessao.EM_CONVERSA)
+
+        return id_usuario
+
+    def processamento_em_andamento(self, id_usuario: str) -> bool:
         """
-        Desbloqueia usuário para processamento.
+        Indica se há um processamento em andamento para o usuário.
+
+        Usa a presença de flag `is_processing` do usuário.
+        """
+        usuario = self.usuario_storage.obter_por_telefone(id_usuario)
+        if usuario:
+            return bool(usuario.is_processing)
+        return False
+
+    def finalizar_processamento(self, id_usuario: str) -> None:
+        """
+        Finaliza o processamento para o usuário, se corresponder à sessão ativa. Reseta o estado da sessão.
 
         Args:
-            id_usuario: ID do usuário
+            id_usuario: ID do usuário (telefone)
         """
+        sessao = self.sessao_storage.obter_sessao_ativa(id_usuario)
+        if sessao is None:
+            return
+            
+        try:
+            usuario = self.usuario_storage.obter_por_telefone(id_usuario)
+        except Exception:
+            usuario = None
+
+        self.usuario_storage.atualizar_flag_processing(id_usuario, False)
+
+        if usuario and usuario.nome:
+            sessao.atualizar_estado(EstadoSessao.MENU_PRINCIPAL)
+        else:
+            sessao.atualizar_estado(EstadoSessao.AGUARDANDO_NOME)
+
+        # Persistir alterações
+        self.sessao_storage.salvar(id_usuario, sessao)
+
+        # Limpar flag de processamento do usuário
         self.usuario_storage.atualizar_flag_processing(id_usuario, False)
 
     def is_usuario_bloqueado(self, id_usuario: str) -> bool:
